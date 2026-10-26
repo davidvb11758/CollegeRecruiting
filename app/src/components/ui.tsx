@@ -86,6 +86,15 @@ export function SecondaryButton({ className = '', ...props }: ComponentProps<'bu
   )
 }
 
+export function OutlineButton({ className = '', ...props }: ComponentProps<'button'>) {
+  return (
+    <button
+      className={`min-h-11 rounded border border-red-900 bg-white px-4 font-medium text-red-900 ${className}`}
+      {...props}
+    />
+  )
+}
+
 /** A message the person must notice. "error" is announced at once; "info" is a polite status. */
 export function Message({ kind, children }: { kind: 'error' | 'info'; children: ReactNode }) {
   return kind === 'error' ? (
@@ -106,5 +115,123 @@ export function Splash({ children = 'Loading…' }: { children?: ReactNode }) {
         {children}
       </p>
     </main>
+  )
+}
+
+type SelectProps = ComponentProps<'select'> & {
+  label: string
+  options: { value: string; label: string }[]
+  placeholder?: string
+  error?: string
+}
+
+export function SelectField({ label, options, placeholder, error, ...select }: SelectProps) {
+  const id = useId()
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      <select
+        id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className="min-h-11 rounded border border-slate-400 bg-white px-2 text-base"
+        {...select}
+      >
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p id={`${id}-error`} className="text-sm text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export function TextAreaField({ label, error, hint, ...area }: ComponentProps<'textarea'> & { label: string; error?: string; hint?: string }) {
+  const id = useId()
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        rows={4}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className="rounded border border-slate-400 bg-white px-3 py-2 text-base"
+        {...area}
+      />
+      {hint && <p className="text-sm text-slate-600">{hint}</p>}
+      {error && (
+        <p id={`${id}-error`} className="text-sm text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** A group of tick boxes that share one form field (react-hook-form returns the ticked values as a list). */
+export function CheckboxGroup({
+  legend,
+  options,
+  error,
+  hint,
+  ...input
+}: Omit<ComponentProps<'input'>, 'type' | 'value'> & {
+  legend: string
+  options: { value: string; label: string }[]
+  error?: string
+  hint?: string
+}) {
+  return (
+    <fieldset className="flex flex-col gap-1">
+      <legend className="text-sm font-medium">{legend}</legend>
+      {hint && <p className="text-sm text-slate-600">{hint}</p>}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {options.map((o) => (
+          <label key={o.value} className="flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" value={o.value} className="size-5" {...input} />
+            {o.label}
+          </label>
+        ))}
+      </div>
+      {error && <p className="text-sm text-red-700">{error}</p>}
+    </fieldset>
+  )
+}
+
+/** Wraps one section's form: the Save button and the saved/failed message. */
+export function SectionForm({
+  onSubmit,
+  saving,
+  saved,
+  error,
+  children,
+}: {
+  onSubmit: () => void
+  saving: boolean
+  saved: boolean
+  error: string | null
+  children: ReactNode
+}) {
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      {children}
+      {error && <Message kind="error">{error}</Message>}
+      {saved && !error && <Message kind="info">Saved.</Message>}
+      <Button type="submit" disabled={saving}>
+        {saving ? 'Saving…' : 'Save'}
+      </Button>
+    </form>
   )
 }

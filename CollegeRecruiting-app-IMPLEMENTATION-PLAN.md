@@ -187,6 +187,17 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - Every screen takes an athlete id so WP9 reuses it unchanged.
 - **AC:** each tab saves and reloads; required fields enforced; age outside 14-18 rejected; completeness bar matches the view.
 
+**WP6 status: code DONE 2026-10-26; waiting for your hands-on test in the browser.** Built in `app/`:
+- **First login:** "Create your athlete profile" (first and last name, date of birth, graduation year, home state; the only team is filled in). Age 14-18 is checked in the form and again by the database.
+- **Profile (4 tabs):** Personal (identity, contact, up to 2 guardians with one main contact), Athletic, Academics (GPA, tests, eligibility, up to 3 intended majors or "Undecided"), Highlights (up to 3 video links, social handles, profile and film links). Each tab saves on its own and shows "Saved." or a readable error.
+- **Preferences** (More tab, "My College Preferences"): a choice per division (not interested / open to / top choice), program levels 1-6 (at least one), playing time, regions, school size, public/private, setting, academics importance, cost, other majors, must-haves, deal-breakers, ideal school.
+- **Completeness bar:** read from the `athlete_completeness` view, so it always matches the database.
+- **Staff reuse (WP9):** `ProfileScreen` and `PreferencesScreen` take an athlete id.
+- **Decisions to know:** (1) the preferences form has **no distance field** (distance is out of the pilot filters; the database column stays); (2) intended majors live on Academics and "other majors I would consider" on Preferences (the two kinds in `athlete_major`); (3) social and profile links sit on the athletic record, so Highlights asks the family to save Athletic first; (4) date of birth can be corrected later (the 14-18 rule applies at creation only, so a senior who turns 19 can still save).
+- **Tests:** 99 app tests (schemas and the ranges the database enforces; every tab's save payload; the guardian demote-then-promote order, mutation-checked) and a new database test file `30_profile_saves.test.sql` that runs the same writes as the athlete under row-level security (first login with no RETURNING, upserts, guardian swap, 3-video and 3-major limits, other athletes and unassigned staff blocked). All 50 database checks pass on DEV.
+- **Found and fixed on the way:** an old security test assumed an empty database; it now counts only its own test rows.
+- **Not yet proven live:** a real athlete saving each tab in the browser (your hands-on test), and a phone-sized run.
+
 
 
 ### WP7 Find Colleges and College detail (5 days; +2 for the extra filters per S5)

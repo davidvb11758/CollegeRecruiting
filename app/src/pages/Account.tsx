@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import NewPasswordForm from '../components/NewPasswordForm'
 import { SecondaryButton } from '../components/ui'
 import { useAuth } from '../lib/authContext'
@@ -20,6 +21,11 @@ export default function Account() {
         <dt className="text-slate-600">Role</dt>
         <dd>{ROLE_LABEL[account.role]}</dd>
       </dl>
+      {account.role === 'athlete' && (
+        <Link to="/preferences" className="min-h-11 max-w-md rounded border border-slate-300 bg-white px-4 py-2.5 font-medium text-red-900">
+          My College Preferences
+        </Link>
+      )}
       <section className="flex max-w-md flex-col gap-3">
         <h2 className="text-lg font-semibold">Change password</h2>
         <NewPasswordForm submitLabel="Change password" />

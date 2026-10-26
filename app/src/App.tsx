@@ -8,6 +8,8 @@ import CreateProfile from './pages/CreateProfile'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import Placeholder from './pages/Placeholder'
+import Preferences from './pages/Preferences'
+import Profile from './pages/Profile'
 import ResetPassword from './pages/ResetPassword'
 import SessionExpired from './pages/SessionExpired'
 import SignIn from './pages/SignIn'
@@ -36,7 +38,8 @@ export default function App() {
               <Route path="/home" element={<Placeholder title="Home" />} />
               <Route path="/list" element={<Placeholder title="My List" />} />
               <Route path="/find" element={<Placeholder title="Find Colleges" />} />
-              <Route path="/profile" element={<Placeholder title="Profile" />} />
+              <Route path="/profile/*" element={<Profile />} />
+              <Route path="/preferences" element={<Preferences />} />
               <Route path="/more" element={<Account />} />
             </Route>
           </Route>

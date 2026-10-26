@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 
 type AuthEvent = 'INITIAL_SESSION' | 'SIGNED_IN' | 'SIGNED_OUT' | 'PASSWORD_RECOVERY'
 type ErrorLike = { message: string; code?: string; status?: number }
+type Row = Record<string, unknown>
 
 export type FakeWorld = {
   /** Who is signed in when the app starts. */
@@ -10,14 +11,103 @@ export type FakeWorld = {
   /** The app_user row the person can read. null = no readable row (a disabled account). */
   appUser: { role: 'athlete' | 'staff' | 'admin'; display_name: string } | null
   /** The athlete row, if the athlete has created a profile. */
-  athlete: { id: string } | null
+  athlete: Row | null
   signInError: ErrorLike | null
   signUpError: ErrorLike | null
   signUpSession: boolean
+  /** Extra or replacement table contents, by table name. */
+  tables: Record<string, Row[]>
+  /** The error the next write to this table should fail with. */
+  failWrites: Record<string, ErrorLike>
 }
 
 export function makeSession(email = 'family@example.com'): Session {
   return { access_token: 't', refresh_token: 'r', token_type: 'bearer', expires_in: 3600, user: { id: 'user-1', email } } as Session
+}
+
+const LOOKUPS: Record<string, Row[]> = {
+  player_position: [
+    { code: 'OH', label: 'Outside Hitter', sort_order: 1 },
+    { code: 'S', label: 'Setter', sort_order: 2 },
+  ],
+  state: [
+    { code: 'IA', name: 'Iowa', sort_order: 1 },
+    { code: 'MN', name: 'Minnesota', sort_order: 2 },
+  ],
+  major_category: [
+    { code: 'BUSN', label: 'Business & management', sort_order: 1 },
+    { code: 'COMP', label: 'Computer & information sciences', sort_order: 2 },
+    { code: 'HLTH', label: 'Health professions & nursing', sort_order: 3 },
+    { code: 'ENGR', label: 'Engineering', sort_order: 4 },
+  ],
+  division: [
+    { code: 'NCAA_D1', label: 'NCAA Division I', sort_order: 1 },
+    { code: 'NCAA_D2', label: 'NCAA Division II', sort_order: 2 },
+  ],
+  team: [{ id: 'team-1', name: 'Iowa Rockets 16R' }],
+}
+
+export const ATHLETE_ROW: Row = {
+  id: 'athlete-1',
+  user_id: 'user-1',
+  team_id: 'team-1',
+  first_name: 'Pat',
+  last_name: 'Player',
+  date_of_birth: '2010-05-01',
+  graduation_year: 2029,
+  home_state: 'IA',
+}
+
+type Mode = 'select' | 'insert' | 'update' | 'upsert' | 'delete'
+
+/** A tiny in-memory table store that answers the query shapes the app uses. */
+function makeQuery(world: FakeWorld, tables: Record<string, Row[]>, calls: { table: string; mode: Mode; payload: unknown }[], table: string) {
+  let mode: Mode = 'select'
+  let payload: unknown
+  let conflict: string[] = []
+  let orderBy: string | null = null
+  let one = false
+  const filters: ((r: Row) => boolean)[] = []
+
+  const run = () => {
+    const rows = (tables[table] ??= [])
+    const failure = mode !== 'select' ? world.failWrites[table] : undefined
+    if (mode !== 'select') calls.push({ table, mode, payload })
+    if (failure) return { data: null, error: failure }
+    const match = (r: Row) => filters.every((f) => f(r))
+    if (mode === 'insert') {
+      for (const r of [payload].flat() as Row[]) rows.push({ id: `${table}-${rows.length + 1}`, ...r })
+    } else if (mode === 'upsert') {
+      for (const r of [payload].flat() as Row[]) {
+        const found = rows.find((x) => conflict.every((k) => x[k] === r[k]))
+        if (found) Object.assign(found, r)
+        else rows.push({ ...r })
+      }
+    } else if (mode === 'update') {
+      for (const r of rows.filter(match)) Object.assign(r, payload as Row)
+    } else if (mode === 'delete') {
+      tables[table] = rows.filter((r) => !match(r))
+    } else {
+      let found = rows.filter(match)
+      if (orderBy) found = [...found].sort((a, b) => Number(a[orderBy!] ?? 0) - Number(b[orderBy!] ?? 0))
+      return { data: one ? (found[0] ?? null) : found, error: null }
+    }
+    return { data: null, error: null }
+  }
+
+  const q = {
+    select: () => q,
+    insert: (p: unknown) => ((mode = 'insert'), (payload = p), q),
+    update: (p: unknown) => ((mode = 'update'), (payload = p), q),
+    upsert: (p: unknown, opts?: { onConflict?: string }) => ((mode = 'upsert'), (payload = p), (conflict = (opts?.onConflict ?? 'id').split(',')), q),
+    delete: () => ((mode = 'delete'), q),
+    eq: (col: string, value: unknown) => (filters.push((r) => r[col] === value), q),
+    in: (col: string, values: unknown[]) => (filters.push((r) => values.includes(r[col])), q),
+    order: (col: string) => ((orderBy = col), q),
+    maybeSingle: () => ((one = true), Promise.resolve(run())),
+    then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => Promise.resolve(run()).then(resolve, reject),
+  }
+  return q
 }
 
 /** A stand-in for the Supabase client with just the calls the app makes. */
@@ -25,12 +115,21 @@ export function makeFakeSupabase(initial: Partial<FakeWorld> = {}) {
   const world: FakeWorld = {
     session: null,
     appUser: { role: 'athlete', display_name: 'Pat Player' },
-    athlete: { id: 'athlete-1' },
+    athlete: { ...ATHLETE_ROW },
     signInError: null,
     signUpError: null,
     signUpSession: true,
+    tables: {},
+    failWrites: {},
     ...initial,
   }
+  const tables: Record<string, Row[]> = {
+    ...structuredClone(LOOKUPS),
+    app_user: world.appUser ? [{ user_id: 'user-1', ...world.appUser }] : [],
+    athlete: world.athlete ? [{ ...ATHLETE_ROW, ...world.athlete }] : [],
+    ...structuredClone(world.tables),
+  }
+  const calls: { table: string; mode: Mode; payload: unknown }[] = []
   let listener: ((event: AuthEvent, session: Session | null) => void) | null = null
   const emit = (event: AuthEvent, session: Session | null) => listener?.(event, session)
 
@@ -63,13 +162,7 @@ export function makeFakeSupabase(initial: Partial<FakeWorld> = {}) {
       resetPasswordForEmail: vi.fn(async () => ({ data: {}, error: null })),
       updateUser: vi.fn(async () => ({ data: {}, error: null })),
     },
-    from: vi.fn((table: string) => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: async () => ({ data: table === 'app_user' ? world.appUser : world.athlete, error: null }),
-        }),
-      }),
-    })),
+    from: vi.fn((table: string) => makeQuery(world, tables, calls, table)),
   }
-  return { client, world, emit }
+  return { client, world, emit, tables, calls }
 }

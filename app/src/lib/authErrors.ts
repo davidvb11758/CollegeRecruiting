@@ -24,6 +24,13 @@ export function friendlyAuthError(error: AuthErrorLike, action: AuthAction): str
       }
       break
     case 'signUp':
+      if (code === 'email_address_invalid' || message.includes('email address') && message.includes('invalid')) {
+        return 'That email address was not accepted. Check it for typos or use a different address.'
+      }
+      if (code === 'signup_disabled') return 'Sign-ups are turned off right now. Contact your Rockets recruiting coordinator.'
+      if (message.includes('sending') && message.includes('email')) {
+        return 'We could not send the confirmation email. Try again later or contact your Rockets recruiting coordinator.'
+      }
       if (message.includes('invalid sign-up code')) {
         return 'That sign-up code is not right. Ask your Rockets recruiting coordinator for the current code.'
       }
@@ -47,5 +54,7 @@ export function friendlyAuthError(error: AuthErrorLike, action: AuthAction): str
     case 'reset':
       break
   }
-  return 'Something went wrong. Please try again.'
+  // Show the server's code so a family can read it out to the coordinator; it holds nothing private.
+  const detail = [error.status, code].filter(Boolean).join(' ')
+  return `Something went wrong. Please try again.${detail ? ` (${detail})` : ''}`
 }

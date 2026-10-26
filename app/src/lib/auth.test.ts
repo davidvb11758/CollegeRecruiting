@@ -55,5 +55,6 @@ describe('friendly auth errors', () => {
 
   it('falls back to a plain sentence', () => {
     expect(friendlyAuthError({ message: 'weird' }, 'reset')).toBe('Something went wrong. Please try again.')
+    expect(friendlyAuthError({ message: 'weird', status: 500, code: 'unexpected_failure' }, 'reset')).toContain('(500 unexpected_failure)')
   })
 })

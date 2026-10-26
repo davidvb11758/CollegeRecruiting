@@ -30,6 +30,7 @@ export default function SignUp() {
       },
     })
     if (error) {
+      console.error('Sign-up failed', error)
       setFormError(friendlyAuthError(error, 'signUp'))
       return
     }
