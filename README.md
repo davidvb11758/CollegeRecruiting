@@ -38,6 +38,8 @@ npm run db:link:dev                # once, links the CLI to DEV (asks for the DE
 npm run db:diff                    # dry run: what would be applied
 npm run db:push                    # apply migrations to the linked project
 npm run db:test                    # run supabase/tests against the linked project (no Docker; see below)
+npm run db:dryrun                  # run unapplied migrations in a transaction and roll back (nothing changes)
+npm run db:dryrun:tests            # same, then run all tests against them
 ```
 
 **Database tests.** `npm run db:test` sends each file in `supabase/tests/` to the linked project through the Management API and rolls it back, so nothing is left behind. House style (see `00_smoke.test.sql`): checks are functions `tests.test_*` and each file ends with one `runtests()` call, because the API returns only the last result set. `npm run db:test:docker` is the stock `supabase test db` for use if Docker is ever installed.

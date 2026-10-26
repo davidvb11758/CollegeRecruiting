@@ -9,7 +9,9 @@
     "db:diff": "supabase db push --linked --dry-run",
     "db:test": "node scripts/db-test.mjs",
     "db:new": "supabase migration new",
-    "db:test:docker": "supabase test db --linked"
+    "db:test:docker": "supabase test db --linked",
+    "db:dryrun": "node scripts/db-dryrun.mjs",
+    "db:dryrun:tests": "node scripts/db-dryrun.mjs --tests"
   },
   "devDependencies": {
     "supabase": "^2.122.0"

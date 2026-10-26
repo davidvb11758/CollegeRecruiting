@@ -5,7 +5,7 @@
 -- every result in that one set. Every file begins with "begin;" and ends with "rollback;" so nothing is left in the database.
 begin;
 
-create schema tests;
+create schema if not exists tests;
 
 create function tests.test_pipeline_works() returns setof text language plpgsql as $$
 begin

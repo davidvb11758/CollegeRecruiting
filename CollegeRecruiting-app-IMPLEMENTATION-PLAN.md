@@ -105,7 +105,15 @@ Follows DATA-MODEL Section 10, one migration per step:
 
 Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-chosen coordinator and the optimistic-concurrency version column (MVP 12.5). Keep the audit triggers.
 
-- **AC:** `supabase db reset` rebuilds the whole schema from migrations; constraint tests (bad stage, 31st college, second open next step, age 14-18, direction required) fail as designed.
+- **AC:** `supabase db reset` rebuilds the whole schema from migrations (not possible without Docker; instead every migration is first run in a rolled-back transaction with `npm run db:dryrun:tests`); constraint tests (bad stage, 31st college, second open next step, age 14-18, direction required) fail as designed.
+
+**WP2 status: DONE 2026-10-26.** Seven migrations (`20261026130000` to `20261026136000`) are applied to DEV: 32 tables and 6 views, row-level security on every table (no policies yet, so default deny), all views `security_invoker`. 25 database tests pass on DEV (`npm run db:test`), including the AC cases. Notes:
+- **Shared pilot code** is enforced in the database (trigger on `auth.users`, code kept in `private.secret_setting`; fails closed until you set one). Set it in the dashboard SQL editor: `insert into private.secret_setting (key, value) values ('signup_code', 'THE-CODE') on conflict (key) do update set value = excluded.value;` The sign-up form sends `{ pilot_code, acknowledged: true, display_name }` as user metadata. Supabase will only return a generic "Database error saving new user", so WP5 shows "check your sign-up code".
+- **Seeded:** club (Iowa Rockets), team (Iowa Rockets 16R), 5 divisions, 5 positions, 25 major categories, 12 activity types, 8 next-step types, 52 states, 5 settings.
+- **Bulk loads** (WP4) can skip the audit trigger with `set local app.skip_audit = '1'`.
+- **Band rule** (D6) is in `program_competitiveness`: rank x 10 / number of ranked programs in the division and season, rounded up, capped at 6; exactly 10% is band 1. WP4 must check that Massey ranks are 1..N within each division (gaps would shift bands).
+- **Found by the Supabase advisor, for WP3:** `public.rls_auto_enable()` (created by Supabase, not by us) can be called by anonymous and signed-in users through the API; revoke execute from `anon` and `authenticated` in the WP3 migration.
+- Not built, per MVP 12.5: `custom_college`, `correction_report`, the `version` columns, `change_history_display`.
 
 
 
