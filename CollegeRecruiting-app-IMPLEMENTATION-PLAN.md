@@ -168,6 +168,15 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - Real SMTP wired in; email templates reworded.
 - **AC:** a new family completes sign-up and verification from a phone; a disabled user is bounced; wrong-password message does not reveal whether the email exists.
 
+**WP5 status: code DONE 2026-10-26; three owner steps remain before the AC can be tried end to end** (see `supabase/auth-settings.md`). Built in `app/`:
+- **Screens:** sign in, sign up (name, email, password twice, pilot code, the acknowledgement checkbox with the WP0 wording), forgot password, reset password (from the email link), change password, sign out, session-ended page, not-found, and a first-login "create your athlete profile" stand-in (the form is WP6).
+- **Layout:** athlete bottom bar (Home, My List, Find, Profile, More) and a staff top bar (Roster, Find Colleges, Account). Home, My List, Find, Profile and Roster are stand-ins until WP6-WP9.
+- **Access:** role and status come from `app_user` through row-level security, never from the token. The wrong role is sent to its own home. A disabled account (no readable `app_user` row) is signed out with "This account is not active".
+- **Messages:** sign-in gives one message for a wrong password or an unknown email. The live server hides the code-check text ("Database error saving new user"), so sign-up shows "Check the sign-up code and try again". Forgot-password gives the same answer for every email.
+- **Tests:** 36 app tests (routing and role guards, sign-in, sign-up, forgot and change password, error wording). Mutation-checked: removing the role check makes two tests fail. Live check on DEV confirmed the three failure responses above and that nothing was created.
+- **Not yet proven live:** the successful sign-up (needs the pilot code), the reset email (needs Resend), and a phone-sized run.
+- **Owner steps:** (1) apply the Auth settings and email template in `supabase/auth-settings.md`; (2) configure Resend SMTP; (3) try a real sign-up with the pilot code (`npm run dev` in `app/`).
+
 
 
 ### WP6 Athlete profile and preferences (6 days)
