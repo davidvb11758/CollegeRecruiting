@@ -1,0 +1,26 @@
+category_code,label,cip_series
+AGRI,Agriculture & food sciences,01
+ENVI,Environment & natural resources,03
+ARCH,Architecture & design,04
+ARTS,Visual & performing arts,50
+BIOL,Biology & life sciences,26
+BUSN,Business & management,52
+COMM,Communication & media,09;10
+COMP,Computer & information sciences,11
+CRIM,Criminal justice & public safety,43
+EDUC,Education & teaching,13
+ENGR,Engineering,14
+ENGT,Engineering & applied technology,15
+LANG,English & world languages,16;23
+KINE,"Exercise science, sport & recreation",31
+HLTH,Health professions & nursing,51
+HIST,History,54
+INTD,Interdisciplinary & general studies,24;30
+LAWS,Law & legal studies,22
+MATH,Mathematics & statistics,27
+PHIL,"Philosophy, religion & theology",38;39
+PSCI,Physical sciences,40;41
+PSYC,Psychology,42
+SOWK,Public administration & social work,44
+SOCS,Social sciences & area studies,45;05
+TRDS,"Skilled trades, culinary & family sciences",46;47;48;49;12;19

@@ -1,0 +1,34 @@
+# Not part of this repo
+SamplePWA/
+
+# Secrets (never commit keys; the Supabase service key must never be in the repo or the app)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.log
+
+# Supabase local stack
+supabase/.branches/
+supabase/.temp/
+
+# Real athlete or roster data (minors); never commit
+roster*.csv
+roster*.xlsx
+Player contact info*
+exports/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
