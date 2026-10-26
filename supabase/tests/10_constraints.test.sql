@@ -4,58 +4,8 @@ begin;
 
 create schema if not exists tests;
 
--- ---------------------------------------------------------------------------------------------
--- Helpers
--- ---------------------------------------------------------------------------------------------
-
-create function tests.mk_user(p_email text) returns uuid language plpgsql as $f$
-declare
-  v_id uuid := gen_random_uuid();
-begin
-  insert into private.secret_setting (key, value) values ('signup_code', 'test-code')
-  on conflict (key) do update set value = excluded.value;
-  insert into auth.users (id, email, raw_user_meta_data, aud, role)
-  values (v_id, p_email,
-          jsonb_build_object('pilot_code', 'Test-Code', 'acknowledged', true, 'display_name', 'Test User'),
-          'authenticated', 'authenticated');
-  return v_id;
-end;
-$f$;
-
-create function tests.mk_athlete(p_email text, p_dob date default (current_date - interval '16 years')::date) returns uuid
-language plpgsql as $f$
-declare
-  v_id uuid;
-begin
-  insert into public.athlete (user_id, team_id, first_name, last_name, date_of_birth, graduation_year, home_state)
-  values (tests.mk_user(p_email), (select t.id from public.team t limit 1), 'Test', 'Athlete', p_dob, 2028, 'IA')
-  returning id into v_id;
-  return v_id;
-end;
-$f$;
-
-create function tests.mk_program(p_n integer, p_division text default 'NCAA_D3', p_rank integer default null,
-                                 p_season text default null) returns bigint
-language plpgsql as $f$
-declare
-  v_id bigint;
-begin
-  insert into public.college (unitid, name, state) values (900000 + p_n, 'Test College ' || p_n, 'IA');
-  insert into public.college_program (unitid, division_code, program_name, division_rank, division_rank_season)
-  values (900000 + p_n, p_division, 'Test College ' || p_n, p_rank, p_season)
-  returning id into v_id;
-  return v_id;
-end;
-$f$;
-
-create function tests.mk_list_entry(p_athlete uuid, p_program bigint) returns uuid language plpgsql as $f$
-declare
-  v_id uuid;
-begin
-  insert into public.athlete_college (athlete_id, program_id) values (p_athlete, p_program) returning id into v_id;
-  return v_id;
-end;
-$f$;
+-- Shared helpers (tests.mk_user, mk_athlete, mk_program, mk_list_entry, ...) come from supabase/tests/helpers.sql,
+-- which the test runner adds in front of every test file.
 
 -- ---------------------------------------------------------------------------------------------
 -- Security basics

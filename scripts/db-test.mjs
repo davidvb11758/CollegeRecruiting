@@ -8,6 +8,7 @@ import { join } from 'node:path'
 
 const testDir = 'supabase/tests'
 const files = readdirSync(testDir).filter((f) => f.endsWith('.test.sql')).sort()
+const helpers = readFileSync(join(testDir, 'helpers.sql'), 'utf8')   // shared builders and act-as helpers, added to every file
 if (files.length === 0) {
   console.error('No test files found in ' + testDir)
   process.exit(1)
@@ -25,7 +26,7 @@ try {
       failed++
       continue
     }
-    const prepared = sql.replace(/^begin;\s*$/im, 'begin;\ncreate extension if not exists pgtap with schema extensions;')
+    const prepared = sql.replace(/^begin;\s*$/im, () => 'begin;\ncreate extension if not exists pgtap with schema extensions;\n' + helpers + '\n')
     const path = join(tmp, file)
     writeFileSync(path, prepared)
 

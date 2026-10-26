@@ -108,7 +108,7 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - **AC:** `supabase db reset` rebuilds the whole schema from migrations (not possible without Docker; instead every migration is first run in a rolled-back transaction with `npm run db:dryrun:tests`); constraint tests (bad stage, 31st college, second open next step, age 14-18, direction required) fail as designed.
 
 **WP2 status: DONE 2026-10-26.** Seven migrations (`20261026130000` to `20261026136000`) are applied to DEV: 32 tables and 6 views, row-level security on every table (no policies yet, so default deny), all views `security_invoker`. 25 database tests pass on DEV (`npm run db:test`), including the AC cases. Notes:
-- **Shared pilot code** is enforced in the database (trigger on `auth.users`, code kept in `private.secret_setting`; fails closed until you set one). Set it in the dashboard SQL editor: `insert into private.secret_setting (key, value) values ('signup_code', 'THE-CODE') on conflict (key) do update set value = excluded.value;` The sign-up form sends `{ pilot_code, acknowledged: true, display_name }` as user metadata. Supabase will only return a generic "Database error saving new user", so WP5 shows "check your sign-up code".
+- **Shared pilot code** is enforced in the database (trigger on `auth.users`, code kept in `private.secret_setting`; fails closed until you set one). Set it in the dashboard SQL editor: `insert into private.secret_setting (key, value) values ('signup_code', 'THE-CODE') on conflict (key) do update set value = excluded.value;` The sign-up form sends `{ pilot_code, acknowledged: true, display_name }` as user metadata. Checked live on DEV: a sign-up with no code set fails with HTTP 500 and the message "Invalid sign-up code" (the acknowledgement error text is "The acknowledgement must be accepted"), so WP5 can show the database's message.
 - **Seeded:** club (Iowa Rockets), team (Iowa Rockets 16R), 5 divisions, 5 positions, 25 major categories, 12 activity types, 8 next-step types, 52 states, 5 settings.
 - **Bulk loads** (WP4) can skip the audit trigger with `set local app.skip_audit = '1'`.
 - **Band rule** (D6) is in `program_competitiveness` (migration `20261026137000`): a program's position in its division's ranked list x 10 / number of ranked programs, rounded up, capped at 6; exactly 10% is band 1. The owner filled every Massey rank (no blanks); the raw numbers still skip values, which the position-based rule ignores. The CSVs were re-saved in Excel, which dropped leading zeros from 122 ZIP codes; they were restored.
@@ -126,6 +126,14 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - **AC:** all tests green locally and on DEV. Any new table or view must come with a test before it merges.
 
 
+
+**WP3 status: DONE 2026-10-26** (migration `20261026140000_rls_policies_and_grants.sql`; tests `20_rls.test.sql` and `helpers.sql`).
+- **44 database tests pass on DEV** (`npm run db:test`), covering every case in DATA-MODEL 8.5: athlete A cannot read, insert, update or re-point anything of athlete B (including by changing `athlete_id`); staff see and edit only assigned athletes and cannot assign themselves; nobody can change their own role, status or login id; athletes cannot forge staff/system labels; nobody deletes through the app; system entries are immutable; a disabled account sees nothing; a stranger with a new login sees only the shared college data; anonymous gets nothing, including the views; private coach contacts are visible only to the athlete, their assigned staff and admin; staff edits to shared college data are stamped and audited; change history shows athletes only what staff did.
+- **Mutation check:** weakening two policies on purpose made 7 test functions fail, so the suite does catch regressions.
+- **Live check against the DEV web API:** signed-out requests to tables, views and the `rls_auto_enable` function are refused (401 / permission denied). The Supabase advisor reports no issues.
+- **Bug the tests found:** `college_program` had no read grant; fixed in the same migration before it was applied.
+- **Pilot decisions:** no app-side write policies for lookups, club/team, staff profiles, assignments or the ZIP table (the dashboard does those); no DELETE through the app except an athlete's own guardians, videos, majors, target divisions and private coach contacts.
+- **Test tooling:** tests run as real database roles using `tests.start_as()`; `supabase/tests/helpers.sql` is added in front of every test file by the runner. Every new table, view or policy from here on needs a test.
 
 ### WP4 College data load (4 days; can overlap WP5)
 

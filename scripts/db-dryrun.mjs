@@ -22,6 +22,7 @@ for (const f of pending) sql += `\n-- >>> ${f}\n` + readFileSync(join('supabase/
 
 if (withTests) {
   sql += 'create extension if not exists pgtap with schema extensions;\n'
+  sql += readFileSync('supabase/tests/helpers.sql', 'utf8') + '\n'
   const tests = readdirSync('supabase/tests').filter((f) => f.endsWith('.test.sql')).sort()
   for (const f of tests) {
     const body = readFileSync(join('supabase/tests', f), 'utf8')
@@ -46,7 +47,7 @@ try {
   const bad = rows.filter((l) => /^\s*not ok/i.test(l) || /Looks like you failed/i.test(l))
   if (bad.length) process.exit(1)
 } catch (e) {
-  console.error(String(e.stderr || e.stdout || e.message).slice(0, 4000))
+  console.error([e.stdout, e.stderr, e.message].filter(Boolean).join('\n').slice(0, 4000))
   process.exit(1)
 } finally {
   rmSync(tmp, { recursive: true, force: true })
