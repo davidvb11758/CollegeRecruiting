@@ -128,7 +128,7 @@ begin
   return next is(tests.q_affected(ua, format($q$update public.next_step set status = 'done' where athlete_id = %L$q$, v_a)), 1::bigint, 'A can complete a next step');
   return next is(tests.q_affected(ua, format($q$delete from public.athlete_guardian where athlete_id = %L$q$, v_a)), 1::bigint, 'A can remove a guardian');
   return next is(tests.q_count(ua, 'select count(*) from public.my_list'), 1::bigint, 'the list view shows A''s list');
-  return next is(tests.q_count(ua, 'select count(*) from public.program_search'), 2::bigint, 'any user can search the college database');
+  return next is(tests.q_count(ua, 'select count(*) from public.program_search where unitid between 900000 and 999999'), 2::bigint, 'any user can search the college database');
 end;
 $f$;
 
@@ -289,7 +289,7 @@ begin
   return next is(tests.q_count(uz, 'select count(*) from public.activity_entry'), 0::bigint, 'a new login sees no activity');
   return next is(tests.q_count(uz, 'select count(*) from public.change_history'), 0::bigint, 'a new login sees no change history');
   return next is(tests.q_count(uz, 'select count(*) from public.app_user'), 1::bigint, 'a new login sees only their own account');
-  return next is(tests.q_count(uz, 'select count(*) from public.college'), 2::bigint, 'a new login can read the college database');
+  return next is(tests.q_count(uz, 'select count(*) from public.college where unitid between 900000 and 999999'), 2::bigint, 'a new login can read the college database');
   return next is(tests.q_count(uz, 'select count(*) from public.college_coach where owner_athlete_id is not null'), 0::bigint, 'and none of the private coach contacts');
   return next is(tests.q_count(uz, 'select count(*) from public.state'), 52::bigint, 'and the lookup lists');
   return next is(tests.q_count(uz, 'select count(*) from public.staff_roster'), 0::bigint, 'the roster view is empty');
@@ -331,10 +331,10 @@ begin
   ua := tests.gid('user_a'); ub := tests.gid('user_b'); us := tests.gid('staff_s'); ut := tests.gid('staff_t');
   v_a := tests.gid('athlete_a'); v_b := tests.gid('athlete_b'); v_p1 := tests.bid('program_1');
 
-  return next is(tests.q_count(ua, 'select count(*) from public.college_coach'), 2::bigint, 'A sees the shared coach and their own private one');
-  return next is(tests.q_count(ub, 'select count(*) from public.college_coach'), 1::bigint, 'B sees only the shared coach');
-  return next is(tests.q_count(us, 'select count(*) from public.college_coach'), 2::bigint, 'S (assigned to A) sees A''s private contact');
-  return next is(tests.q_count(ut, 'select count(*) from public.college_coach'), 1::bigint, 'T (not assigned) does not');
+  return next is(tests.q_count(ua, format('select count(*) from public.college_coach where program_id = %s', v_p1)), 2::bigint, 'A sees the shared coach and their own private one');
+  return next is(tests.q_count(ub, format('select count(*) from public.college_coach where program_id = %s', v_p1)), 1::bigint, 'B sees only the shared coach');
+  return next is(tests.q_count(us, format('select count(*) from public.college_coach where program_id = %s', v_p1)), 2::bigint, 'S (assigned to A) sees A''s private contact');
+  return next is(tests.q_count(ut, format('select count(*) from public.college_coach where program_id = %s', v_p1)), 1::bigint, 'T (not assigned) does not');
   return next is(tests.q_affected(ua, format($q$insert into public.college_coach (program_id, full_name, owner_athlete_id) values (%s, 'New private', %L)$q$, v_p1, v_a)), 1::bigint, 'A can add a private contact');
   return next ok(tests.q_fails(ua, format($q$insert into public.college_coach (program_id, full_name, owner_athlete_id) values (%s, 'Planted', %L)$q$, v_p1, v_b)), 'A cannot add a private contact to B');
   return next ok(tests.q_fails(ua, format($q$insert into public.college_coach (program_id, full_name) values (%s, 'Fake master coach')$q$, v_p1)), 'A cannot add a shared (master) coach');
@@ -425,7 +425,7 @@ begin
   return next is(tests.q_count(us, format($q$select count(*) from public.staff_roster where athlete_id = %L$q$, tests.gid('athlete_b'))), 0::bigint, 'the roster hides B from S');
   return next is(tests.q_count(ut, 'select count(*) from public.staff_roster'), 0::bigint, 'the roster is empty for T');
   return next is(tests.q_count(ub, format($q$select count(*) from public.athlete_completeness where athlete_id = %L$q$, tests.gid('athlete_a'))), 0::bigint, 'completeness hides A from B');
-  return next is(tests.q_count(ua, 'select count(*) from public.program_competitiveness'), 2::bigint, 'the college band view is shared reference data');
+  return next is(tests.q_count(ua, format('select count(*) from public.program_competitiveness where program_id in (%s, %s)', tests.bid('program_1'), tests.bid('program_2'))), 2::bigint, 'the college band view is shared reference data');
 end;
 $f$;
 

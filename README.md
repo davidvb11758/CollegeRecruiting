@@ -38,6 +38,7 @@ npm run db:link:dev                # once, links the CLI to DEV (asks for the DE
 npm run db:diff                    # dry run: what would be applied
 npm run db:push                    # apply migrations to the linked project
 npm run db:test                    # run supabase/tests against the linked project (no Docker; see below)
+npm run load:colleges:verify        # check the loaded college data against the CSVs (load itself: npm run load:colleges)
 npm run db:dryrun                  # run unapplied migrations in a transaction and roll back (nothing changes)
 npm run db:dryrun:tests            # same, then run all tests against them
 ```

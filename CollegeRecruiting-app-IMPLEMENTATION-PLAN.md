@@ -152,6 +152,14 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 
 
 
+**WP4 status: DONE 2026-10-26** (`scripts/load-colleges.mjs`; report in `CollegeInfo\LOAD-REPORT.md`). Loaded into DEV: 1,662 colleges and programs, 234 conferences, 2,043 coach contacts, 26,351 college-to-major links and 33,144 ZIP locations. I used one script (clean, validate, load, verify) instead of staging tables.
+- **Checks, all passing:** row counts match the CSVs; every program has a college; at most one primary contact per program and every program with coaches has one; the bulk load wrote no audit rows; every division has all six bands (about 10% each, the last band 50%); 20 random colleges match their CSV rows field by field; `program_search` over all programs runs in about 30-110 ms. A `--reset` reload was run to prove the load can be repeated.
+- **Cleaning applied (59 items, listed in the report):** one conference spelling merged ("Big 8 Conference"); 4 malformed coach emails fixed (first address kept, stray spaces removed); all emails lower-cased; 22 programs where one person filled two coach slots loaded once; alumni class-year tags ("'15") removed from coach names; one garbled campus name repaired (Itawamba - Fulton).
+- **Rules used:** the primary recruiting contact is the recruiting coordinator if there is one, otherwise the head coach. College control comes from IPEDS (it disagrees with the file's Public/Private label on 3 rows). Rank season label is "Massey CSV, Oct 2026" (the real season is not in the files).
+- **Good to know:** 636 programs have no coach contact (mostly NJCAA and NAIA), as expected from the source. 21 programs have coaches sharing one team inbox, so email is not unique. Coach edits by staff will refresh `last_verified_on`.
+- **Safety:** the script refuses to run unless the linked project is DEV, refuses to load into non-empty tables without `--reset`, and refuses `--reset` once any athlete has a list. `npm run load:colleges:verify` re-checks what is loaded against the CSVs.
+- **Tests:** the security tests now scope their counts to their own rows (ids 900000-999999) so real data does not disturb them; 44 tests pass with the data loaded.
+
 ### WP5 App shell and authentication (4 days)
 
 - Layout: athlete bottom bar (Home, My List, Find, Profile, More), staff top bar, minimal admin-free shell; usable at 360px.

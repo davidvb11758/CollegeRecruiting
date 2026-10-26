@@ -11,7 +11,9 @@
     "db:new": "supabase migration new",
     "db:test:docker": "supabase test db --linked",
     "db:dryrun": "node scripts/db-dryrun.mjs",
-    "db:dryrun:tests": "node scripts/db-dryrun.mjs --tests"
+    "db:dryrun:tests": "node scripts/db-dryrun.mjs --tests",
+    "load:colleges": "node scripts/load-colleges.mjs",
+    "load:colleges:verify": "node scripts/load-colleges.mjs --verify"
   },
   "devDependencies": {
     "supabase": "^2.122.0"
