@@ -47,7 +47,7 @@ The five files in `CollegeInfo\` were enriched from IPEDS and their UNITIDs corr
 
 5. **Coach data is thin outside NCAA D-I:** head coach filled for 98% of D-I, 92% of D-II, 81% of D-III, 27% of NAIA, and 6% of NJCAA (25 of 414). Recruiting-coordinator names exist for 130 programs in total.
 6. **Coach email quirks:** 18 programs (14 in D-I) use the same email for head and assistant coach (for example one shared team inbox), so **do not make coach email unique per program.** A few emails are not in a clean single-address form and need cleanup. No row has an email without a name.
-7. **Rank:** the Massey rank is filled for 1,520 of the 1,662 rows (all 347 of D-I, 274 of 282 D-II, 405 of 416 D-III, 193 of 203 NAIA, 301 of 414 NJCAA). Rows with a blank rank get **no competitiveness band** ("Unranked"), and the filter must say so.
+7. **Rank:** the owner filled in every Massey rank on 2026-10-26, so all 1,662 rows are ranked and **every program gets a band**. The numbers still skip values (the Massey list covers teams that are not in our files: D-I runs to 348 for 347 programs, D-II to 292 for 282, D-III to 446 for 416, NAIA to 218 for 203, NJCAA to 466 for 414), so bands use each program's **position** in its division's ranked list, not the raw number (migration `20261026137000`). Programs with no rank (none today) would get no band.
 8. **Match quality:** UNITID quality was checked by comparing names and cities to IPEDS (the source `HD2025_INSTNM` column is just the IPEDS name of the UNITID, so it cannot validate it). After the fixes: 1,637 ok, 20 name differs (SUNY and similar wording), 2 shared parent data, 3 campus check (IPEDS record is a different campus of the same school). On rows whose UNITID changed, `HD2025_INSTNM` still holds the old school's name; it is not imported.
 
 ---
@@ -363,7 +363,7 @@ Create three test accounts (athlete A, athlete B, staff assigned to A only) plus
 | 3 | **Search filters: distance, size, major** | **Settled:** enrichment done. Size, setting, selectivity and major are in the pilot; **distance is not**. |
 | 4 | **Email** | **Settled:** no digest and no coach-update email; Home still lists overdue steps; password-reset email stays (Resend); no email confirmation at sign-up. |
 | 5 | **How staff get linked to athletes** | **Settled:** admin assigns in the dashboard (pilot). |
-| 6 | **Competitiveness preference:** multi-select of the six bands; boundary rule | Open detail: "up to and including 10%" is band 1 (my suggestion, to confirm at WP4). Unranked programs get no band. |
+| 6 | **Competitiveness preference:** multi-select of the six bands; boundary rule | **Settled:** exactly 10% belongs to the better band; bands use position in the division's ranked list (rank gaps ignored). Programs with no rank get no band. |
 | 7 | **Massey rank and rating** | Rank to `division_rank` (needed for bands); rating stored but unused; Tier ignored. |
 | 8 | **Terms, privacy and parent consent** | **Settled for the pilot:** one acknowledgement checkbox at sign-up, stored on `app_user` with a timestamp (wording in MVP 12.1). No consent tables. |
 | 9 | **Account lockout after repeated failed logins** | Accept Supabase's rate limits for the pilot; removed from the checklist. |

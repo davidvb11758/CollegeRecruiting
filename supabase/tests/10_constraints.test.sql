@@ -462,6 +462,22 @@ begin
 end;
 $f$;
 
+create function tests.test_bands_ignore_gaps_in_the_source_rank() returns setof text language plpgsql as $f$
+declare
+  i integer;
+begin
+  -- 20 programs whose raw ranks skip numbers (1, 3, 5, ... 39), as the real Massey ranks do.
+  for i in 1..20 loop
+    perform tests.mk_program(1300 + i, 'NJCAA', 2 * i - 1, 'TEST-GAPS');
+  end loop;
+  return next is(
+    (select array_agg(band order by division_rank)
+       from public.program_competitiveness where division_rank_season = 'TEST-GAPS'),
+    array[1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    'bands depend on position in the ranked list, not on the raw rank number');
+end;
+$f$;
+
 -- ---------------------------------------------------------------------------------------------
 -- Views
 -- ---------------------------------------------------------------------------------------------
