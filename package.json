@@ -1,0 +1,17 @@
+{
+  "name": "rockets-college-recruiting",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Rockets College Recruiting: database migrations and tooling. The web app is in app/.",
+  "scripts": {
+    "db:link:dev": "supabase link --project-ref ewqocjaurrkamkhhwgll",
+    "db:push": "supabase db push --linked",
+    "db:diff": "supabase db push --linked --dry-run",
+    "db:test": "node scripts/db-test.mjs",
+    "db:new": "supabase migration new",
+    "db:test:docker": "supabase test db --linked"
+  },
+  "devDependencies": {
+    "supabase": "^2.122.0"
+  }
+}

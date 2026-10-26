@@ -49,7 +49,7 @@ Most are already in the docs as open items. None needs code, but several block t
 | P2  | Email vs username sign-in                      | **Email sign-in** for the pilot (no server function). Username later.                                                                                                                                                                            | WP5               | Okay to use email address as the sign-in.                                                                                                                                            |
 | P3  | Shared pilot code on sign-up?                  | Private URL + CAPTCHA + email confirmation; add a code only if the URL leaks.                                                                                                                                                                    | WP5               | Shared pilot code. No captcha. No email confirmation.                                                                                                                                |
 | P4  | DEV plan: upgrade or weekly exports?           | **Upgrade DEV for the pilot** (backups, no idle pause, session settings). Real minors' data in a free project with no backups is the main avoidable risk.                                                                                        | WP10              | Backups will be manual.                                                                                                                                                              |
-| P5  | Which team and which two coordinators?         | Needed to build assignments and to schedule training.                                                                                                                                                                                            | WP9               | Team: Iowa Rockets 16R. Coordinator: David.Rodgers.vb@gmail.com. [MoriaSlabaugh@gmail.com](mailto:moriaslabaugh@gmail.com)                                                           |
+| P5  | Which team and which two coordinators?         | Needed to build assignments and to schedule training.                                                                                                                                                                                            | WP9               | Team: Iowa Rockets 16R. Coordinator: [David.Rodgers.vb@gmail.com](mailto:David.Rodgers.vb@gmail.com). [MoriaSlabaugh@gmail.com](mailto:moriaslabaugh@gmail.com)                      |
 | S1  | **SMTP provider**                              | Pick one (Resend, Postmark, SendGrid, etc.) and verify a sending domain. The built-in Supabase mailer is test-grade. The verification email is the first thing a family sees.                                                                    | WP5               | Use Resend.                                                                                                                                                                          |
 | S2  | One-line notice + checkbox at sign-up          | Yes: a single acknowledgement stored in `app_user` (no consent tables). Wording from you.                                                                                                                                                        | WP5               | Accept recommendation. Consent wording: I acknowledge providing athlete and personal information will be used by Iowa Rockets and necessary data can be shared with college coaches. |
 | S3  | Siblings                                       | Require a different email per athlete (plus-addressing works). Say so on the sign-up page.                                                                                                                                                       | WP5               | Siblings will need to use 2 different email addresses.                                                                                                                               |
@@ -57,6 +57,8 @@ Most are already in the docs as open items. None needs code, but several block t
 | S5  | Distance, size and major filters in the pilot? | **Include them.** The enrichment is done; size, setting, selectivity and major are plain filters, and distance is one ZIP lookup plus a distance function. MVP 12.3 currently says "Later" and needs updating.                                   | WP7               | Include; size, setting, selectivity and major are plain filters. Do not include distance in pilot.                                                                                   |
 | S6  | Load NJCAA?                                    | Files are ready (414 rows). Recommend **load but hide behind a division filter default** so coordinators can switch it on; NJCAA coach data is only about 6% filled. Or skip, as MVP 12.3 says.                                                  | WP4               | Okay to include njcaa in the pilot.                                                                                                                                                  |
 | S7  | Registered visibility of coach emails          | Any registered user sees all college coach emails (open sign-up). Accept, since the data is from public staff pages.                                                                                                                             | WP3               | Accept recommendation.                                                                                                                                                               |
+
+
 
 
 ---
@@ -70,7 +72,7 @@ Effort is focused build days (rough). **AC** = acceptance criteria.
 ### WP0 Decisions and housekeeping (about 3 days, mostly waiting on you)
 
 - Settle Section 2 above. - DONE
-- Update MVP-DETAIL Section 12.3 (new filters, 1,662 colleges, UNITIDs corrected) and DATA-MODEL Section 1 and 9 (enrichment done, new columns, three owner-assigned campus ids that borrow parent data, `college_major` and `zip_location` tables).
+- Update MVP-DETAIL Section 12.3 (new filters, 1,662 colleges, UNITIDs corrected) and DATA-MODEL Section 1 and 9 (enrichment done, new columns, three owner-assigned campus ids that borrow parent data, `college_major` and `zip_location` tables). - DONE 2026-10-26 (also records P1-P5 answers, shared pilot code with no CAPTCHA or email confirmation, no distance filter, NJCAA included).
 - Confirm sign-up notice wording (S2). - DONE
 - **AC:** every row in Section 2 has an answer; docs agree with each other.
 
@@ -78,12 +80,14 @@ Effort is focused build days (rough). **AC** = acceptance criteria.
 
 ### WP1 Foundation (2 days)
 
-- Git repository with this layout: `supabase/migrations`, `supabase/tests`, `supabase/seed`, `data/` (cleaned college files), `app/`, `docs/`.
-- Create the **DEV** and **PROD** Supabase projects; link the CLI; local stack running.
-- App skeleton: build, lint, type-check, environment files (public key only; **the service key never goes in the app or the repo**).
-- CI: type-check, build, and the SQL tests on every push.
-- Branch rule: schema changes only via migration files.
-- **AC:** an empty migration applies to local and DEV; the app builds and shows a signed-out page; secrets are in a password manager, not git.
+- Git repository with this layout: `supabase/migrations`, `supabase/tests`, `supabase/seed`, `data/` (cleaned college files), `app/`, `docs/`. - DONE
+- Create the **DEV** and **PROD** Supabase projects; link the CLI. (No local stack: T2 = no Docker.) - Projects DONE; CLI installed and `supabase/` initialised; DEV is linked and the baseline migration is applied. **WP1 complete.**
+  - Dev is:  RocketsDev ([https://ewqocjaurrkamkhhwgll.supabase.co](https://ewqocjaurrkamkhhwgll.supabase.co))
+  - Prod is:  Rockets College Recruiting ([https://ivpewjtiwslpjlkfawlt.supabase.co](https://ivpewjtiwslpjlkfawlt.supabase.co))
+- App skeleton: build, lint, type-check, environment files (public key only; **the service key never goes in the app or the repo**). - DONE (`app/`; typecheck, lint, 4 tests and build pass).
+- CI: type-check, lint, tests, build on every push, plus guardrails (no service key in the app, no committed env files, migration file names). - DONE in `.github/workflows/ci.yml`; first run happens on the next push. **SQL tests are not in CI** (no local database); run `npm run db:test` against DEV by hand (a Docker-free runner, `scripts/db-test.mjs`).
+- Branch rule: schema changes only via migration files. - DONE (stated in `README.md`; enable GitHub branch protection on `main` if you want it enforced).
+- **AC:** an empty migration applies to DEV (met: `20261026120000` is on both sides in `migration list`; the pgTAP smoke test passes on DEV via `npm run db:test`); the app builds and shows a signed-out page (met); secrets are in a password manager, not git.
 
 
 
@@ -135,7 +139,7 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 ### WP5 App shell and authentication (4 days)
 
 - Layout: athlete bottom bar (Home, My List, Find, Profile, More), staff top bar, minimal admin-free shell; usable at 360px.
-- Sign up (with CAPTCHA, notice checkbox), confirm email, sign in, forgot/reset password, sign out, change password, session-expired and not-found pages.
+- Sign up (**shared pilot code, enforced on the server; no CAPTCHA, no email confirmation**; acknowledgement checkbox), sign in, forgot/reset password, sign out, change password, session-expired and not-found pages. Design choice needed first: how the code is checked without custom server code (DATA-MODEL Section 9, item 13).
 - Route guard by role (from `app_user`, not the token's editable data); first-login routing: athlete with no athlete row goes to the "create profile" step.
 - Real SMTP wired in; email templates reworded.
 - **AC:** a new family completes sign-up and verification from a phone; a disabled user is bounced; wrong-password message does not reveal whether the email exists.

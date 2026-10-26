@@ -764,7 +764,8 @@ The MVP described above is the full target. The **pilot** is a smaller first rel
 - **The pilot runs in DEV.** PROD is created but left empty until the pilot is judged a success.
 - Because DEV will hold real data about minors, it is treated as pilot-stable: schema changes only through migration files, no database resets, regular backups (the free Supabase plan has no automatic backups and pauses idle projects, so either upgrade DEV for the pilot or take weekly exports; confirm the plan).
 - **Open question P1:** at launch, do pilot accounts carry over to PROD or are they reset? (Reset is simpler; carry-over needs a migration script and password resets.) Decide before recruiting families.
-- Sign-up is open but the URL is shared **only** with the pilot group, with email confirmation and a CAPTCHA on. An optional shared pilot code on the sign-up form is available if wanted (not an invitation system).
+- Sign-up is open but the URL is shared **only** with the pilot group. **Decided (WP0): a shared pilot code on the sign-up form; no CAPTCHA; no email confirmation** (Supabase "Confirm email" is turned off). The pilot code is the only gate against strangers, so it is changed if the URL leaks. Password-reset email still works and uses the Resend SMTP provider. Siblings need different email addresses. The sign-up page has one acknowledgement checkbox: *"I acknowledge providing athlete and personal information will be used by Iowa Rockets and necessary data can be shared with college coaches."*
+- Backups are manual (exports taken by the admin); the DEV plan is not upgraded for the pilot. There is no local database (no Docker): DEV is scratch until the WP10 freeze, then schema changes only through migrations.
 - Go/no-go gate: the RLS test plan (DATA-MODEL-RLS doc, Section 8.5) passes before any family signs up.
 
 ### 12.2 Who
@@ -772,25 +773,28 @@ The MVP described above is the full target. The **pilot** is a smaller first rel
 | Item | Pilot |
 |---|---|
 | Athletes | 12-15 invited, about 10 expected active; mix of sophomores and juniors, 1-2 seniors if volunteers |
-| Teams | One team (two at most) |
-| Coordinators | 2 (a primary and a backup) |
+| Teams | One team: **Iowa Rockets 16R** |
+| Coordinators | 2: David Rodgers and Moria Slabaugh (assigned to athletes in the dashboard) |
 | Admin | 1 (you), working mostly in the Supabase dashboard |
 | Week 0 dry run | 2-3 friendly test accounts go through the whole flow first |
 | Duration | 4-6 weeks |
 
 ### 12.3 College data
 
+The five source files were enriched from federal IPEDS data on 2026-10-26 and the UNITID problems were resolved (see `CollegeInfo\ENRICHMENT-README.md`). The files now hold **1,662 programs and 1,662 distinct UNITIDs**, so `college` and `college_program` are one-to-one for the pilot (the separate program table is kept for later sports and divisions).
+
 | Division | Programs | Head coach on file | Pilot |
 |---|---|---|---|
 | NCAA D-I | 347 | 98% | Load |
-| NCAA D-II | 284 | 92% | Load |
-| NCAA D-III | 419 | 81% | Load |
+| NCAA D-II | 282 | 92% | Load |
+| NCAA D-III | 416 | 81% | Load |
 | NAIA | 203 | 27% | Load; coordinators fill in Iowa-region schools first (also tests staff editing of college data) |
-| NJCAA | 416 | 6% | **Later** (too few coach contacts to be useful) |
+| NJCAA | 414 | 6% | **Load** (decided in WP0); the division filter lets users turn it off |
 
 - Not limited to D-I: most recruits target D-II, D-III or NAIA.
-- UNITID conflicts in the source files (11 IDs, 26 rows) must be corrected before loading.
-- **Search filters in the pilot:** division, state, conference, public/private, competitiveness band, name. **Later:** distance, school size, major (need IPEDS enrichment and a ZIP table). Distance is the first to add if athletes ask.
+- **Added by the enrichment:** latitude/longitude, ZIP, website and net-price links, campus setting (Urban/Suburban/Rural), undergraduate enrollment (fall 2023), tuition (2023-24), admit rate and selectivity band, and 25 major categories per college (26,351 college-to-major links), plus a 33,144-row ZIP table. Data vintage: IPEDS HD2024, EF2023, IC2023_AY, ADM2023, C2024/C2023.
+- **Three campus ids are owner-assigned, not IPEDS ids** (Minnesota North - Mesabi Range 17373502, Minnesota North - Vermilion 17373505, Lock Haven 213613). They carry the parent institution's IPEDS data, so their location, size, tuition and majors are the parent's. Other multi-campus institutions' campuses are approximations too.
+- **Search filters in the pilot:** division, state, conference, public/private, competitiveness band, name, **plus school size, campus setting, selectivity and major**. **Distance from home is not in the pilot** (decided in WP0); the ZIP table is loaded for when it is added.
 
 ### 12.4 Page-by-page status
 
@@ -814,7 +818,7 @@ Page numbers refer to Section 5. **Pilot** = built for the pilot. **Simplified**
 | A1 Home | Pilot | Overdue and due-this-week next steps, silent colleges, recent activity |
 | A2 My Profile (A2a-A2d) | Pilot | Four tabs; completeness bar |
 | A3 My College Preferences | Pilot | Includes competitiveness bands |
-| A4 Find Colleges | Simplified | Filters listed in 12.3 only |
+| A4 Find Colleges | Simplified | Filters listed in 12.3 (no distance) |
 | A5 College detail | Simplified | No "Report a correction" button |
 | A6 Add a college not in the database | Later | With 1,000+ programs loaded it may not be needed |
 | A7 My College List | Simplified | Plain list with priority and stage filters; no funnel view |
@@ -862,9 +866,10 @@ Page numbers refer to Section 5. **Pilot** = built for the pilot. **Simplified**
 - "Narrow your list" hint, funnel view, priority-balance hint.
 - Analytics events (use Supabase logs and weekly check-ins instead).
 - Account lockout after 5 failed attempts and the 2-hour staff session timeout (Supabase defaults apply).
+- CAPTCHA and email confirmation at sign-up (a shared pilot code is used instead).
 - All email beyond sign-in verification and password reset (digest, "coach updated" email), per D5.
 - Username sign-in (option; email sign-in is acceptable for the pilot).
-- NJCAA programs; distance, size and major filters.
+- Distance-from-home filter.
 
 ### 12.6 Pilot success measures
 
@@ -874,12 +879,12 @@ Page numbers refer to Section 5. **Pilot** = built for the pilot. **Simplified**
 - Zero data leaks between athletes (RLS test plan passes before launch and spot checks stay clean).
 - A short weekly check-in with coordinators and a few parents; list of requested features ranked after week 4.
 
-### 12.7 Pilot open items
+### 12.7 Pilot open items (all answered in WP0)
 
-| # | Item |
-|---|---|
-| P1 | Carry pilot accounts to PROD, or reset them at launch? |
-| P2 | Email sign-in only for the pilot, or build username sign-in now? |
-| P3 | Shared pilot code on the sign-up form, or rely on a private URL plus CAPTCHA? |
-| P4 | Upgrade DEV for backups and no auto-pause during the pilot, or take weekly exports? |
-| P5 | Which team and which two coordinators? |
+| # | Item | Answer |
+|---|---|---|
+| P1 | Carry pilot accounts to PROD, or reset them at launch? | **Reset** before PROD. |
+| P2 | Email sign-in only for the pilot, or build username sign-in now? | **Email sign-in.** |
+| P3 | Shared pilot code, or private URL plus CAPTCHA? | **Shared pilot code. No CAPTCHA, no email confirmation.** |
+| P4 | Upgrade DEV for backups, or weekly exports? | **Manual backups.** |
+| P5 | Which team and which two coordinators? | **Iowa Rockets 16R**; coordinators David Rodgers and Moria Slabaugh. |

@@ -1,6 +1,6 @@
 # College Recruiting App: Data Model (ER Plan) and Row-Level Security Rules for Supabase
 
-*Planning only. No SQL or application code. Based on the current `CollegeRecruiting-app-MVP-DETAIL.md` (including your inline edits and answers) and the five files in `CollegeInfo\`. Draft 1, 2026-10-26.*
+*Planning only. No SQL or application code. Updated 2026-10-26 after the IPEDS enrichment and the WP0 decisions (see Sections 0, 1 and 9). Based on the current `CollegeRecruiting-app-MVP-DETAIL.md` (including your inline edits and answers) and the five files in `CollegeInfo\`. Draft 1, 2026-10-26.*
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Your edit | Effect on the data model |
 |---|---|
-| No invitations; families self-register from a URL the club gives out | No `invite` table. Sign-up is open, so **security rests on RLS** (Section 7) plus email confirmation and a CAPTCHA on the sign-up form. |
+| No invitations; families self-register from a URL the club gives out | No `invite` table. Sign-up is open, so **security rests on RLS** (Section 8). **WP0 decision:** the sign-up form asks for a shared pilot code; no CAPTCHA and no email confirmation. |
 | Consent record, Terms, Privacy: not MVP | No `consent_record` table. (Risk note in Section 9, item 8.) |
 | Roster import, invites and password resets by admin: not needed | Athletes enter their own team and pick their own coordinator. No roster-import staging tables. |
 | Email activity postponed | No digest, no "your coach updated" email, no notification preference columns. |
 | Club Staff **can edit master college info** (D4) | Staff get write access to the college, program and coach tables. Those edits go to the change history too. |
 | College PK = **UNITID** | `college.unitid` is the primary key. Programs hang off it (Section 1 explains why a separate program table is still required). |
 | Competitiveness = rank within division, 6 percentile bands (D6) | Replaces the T1-T5 tier. Bands are **calculated in a view** from the stored division rank, not typed in. |
-| Do not import AVCA rank, RPI rank, Region, Reg rank, reg-rank college name, Match score, Massey college name | Not stored. Mapping is in Section 8. |
+| Do not import AVCA rank, RPI rank, Region, Reg rank, reg-rank college name, Match score, Massey college name | Not stored. Mapping is in Section 5.3 and the load steps in the implementation plan (WP4). |
 
 **Supabase Auth replaces much of Section 3.1 of the MVP doc.** Supabase stores passwords (hashed), sessions, email verification and reset tokens. So these planned tables are **not built**: `password_reset_request`, `login_event`, `session`, `invite`, `consent_record`. The doc's "lock after 5 failures" is not native (Supabase has rate limits, not a per-account lockout); see Section 9.
 
@@ -23,36 +23,32 @@
 
 ## 1. What the college files tell us (read this before loading data)
 
-Five CSV files, 25 columns each (the NJCAA file has an extra blank header at the end):
+The five files in `CollegeInfo\` were enriched from IPEDS and their UNITIDs corrected on 2026-10-26 (details: `CollegeInfo\ENRICHMENT-README.md`). Originals are in `CollegeInfo\original\`.
 
 | File | Rows | Distinct UNITIDs |
 |---|---|---|
 | NCAA D-I | 347 | 347 |
-| NCAA D-II | 284 | 282 |
-| NCAA D-III | 419 | 417 |
+| NCAA D-II | 282 | 282 |
+| NCAA D-III | 416 | 416 |
 | NAIA | 203 | 203 |
-| NJCAA | 416 | 413 |
-| **All files** | **1,669** | **1,654** |
+| NJCAA | 414 | 414 |
+| **All files** | **1,662** | **1,662** |
 
-1. **There are about 1,650 programs, not 5,000.** Your D3 answer said about 5,000 colleges. If you mean every U.S. college (including ones with no volleyball team), the design supports it: `college` would hold all institutions and `college_program` only the 1,650 that have a team. Please confirm which you intend.
-2. **UNITID is not unique in the files.** 11 UNITIDs are shared by 26 rows:
-   - **Looks like wrong matches (different schools):** UNITID 215062 is on Penn plus three Pennsylvania state schools (Clarion, California U of PA, Bloomsburg). Others: 214591 (Penn State and Penn State Erie), 186371 (Rutgers and Rutgers-Camden), 198385 (Davidson College and Davidson County CC), 190150 (Columbia and The King's College), 230728 (Utah State and Utah State Eastern), 151786 (Marian University and Marian's Ancilla College), 145691 (Illinois College and Frontier CC). These need correcting in the source files before load.
-   - **Looks genuine (one merged institution, several campuses):** Vermont State University (Castleton, Johnson, Lyndon, UNITID 231165), Minnesota North College (Mesabi Range, Vermilion, Hibbing, 173735), Coastal Alabama CC (Brewton, Bay Minette, 101161). These are one college with several programs, which is the reason `college` and `college_program` are separate tables.
-3. **Because of item 2, UNITID can be the college key but not the program key.** The program table gets its own ID.
-4. **The files only support some of the search filters in your acceptance checklist.**
+1. **There are 1,662 programs, not 5,000.** The earlier "about 5,000" is not what the files hold. `college` loads one row per UNITID. If every U.S. institution is ever wanted, the design supports it (`college` for all, `college_program` only for those with a team).
+2. **UNITIDs are now unique.** The 11 wrong matches were fixed by the owner (rows corrected, merged duplicates removed: Clarion, Edinboro, The King's College, Utah State Eastern, Coastal Alabama - Brewton, Vermont State - Castleton and Johnson). Three campus ids are **owner-assigned and not IPEDS ids**: Minnesota North - Mesabi Range 17373502, Minnesota North - Vermilion 17373505, Lock Haven 213613. `college.unitid` must therefore be a plain integer key with no foreign key to an IPEDS table. Those three rows carry the parent institution's IPEDS data.
+3. **`college_program` still has its own ID,** because later sports or divisions can give one UNITID several programs. In the pilot it is one-to-one with `college`.
+4. **Columns added by the enrichment** (19 per file): `ipeds_unitid_check`, `proposed_unitid`, `ipeds_name`, `zip`, `website_url`, `net_price_url`, `latitude`, `longitude`, `ipeds_control`, `campus_setting`, `locale_code`, `undergrad_enrollment`, `enrollment_term`, `tuition_in_state`, `tuition_out_of_state`, `tuition_year`, `admit_rate`, `selectivity`, `major_categories` (semicolon list), `major_category_count`. Support files: `major_category.csv` (25 rows), `college_major.csv` (26,351 rows), `zip_location.csv` (33,144 rows). The `ipeds_unitid_check`, `proposed_unitid` and `ipeds_name` columns are load-time QA only.
 
-   | Filter | Supported by the files? |
+   | Filter | Supported? |
    |---|---|
-   | Division, conference, state, public/private, name search, competitiveness band | Yes |
-   | Distance from home | **No.** Needs college latitude/longitude and a ZIP-to-location table. |
-   | School size | **No.** Needs enrollment. |
-   | Major | **No.** Needs majors offered per college. |
+   | Division, conference, state, public/private, name, competitiveness band | Yes |
+   | School size, campus setting, selectivity, major | **Yes** (enrichment) |
+   | Distance from home | Data is ready (lat/long + ZIP table), **not in the pilot** (WP0) |
 
-   All three missing items are available from the federal IPEDS data (the `HD2025_INSTNM` column in your files is an IPEDS name, so the match is already done). I recommend a one-time enrichment load. Otherwise those filters ship empty.
-5. **Coach data is thin outside NCAA D-I:** head coach filled for 98% of D-I, 92% of D-II, 81% of D-III, 27% of NAIA, and 6% of NJCAA (25 of 416). Recruiting-coordinator names exist for only 130 programs in total.
+5. **Coach data is thin outside NCAA D-I:** head coach filled for 98% of D-I, 92% of D-II, 81% of D-III, 27% of NAIA, and 6% of NJCAA (25 of 414). Recruiting-coordinator names exist for 130 programs in total.
 6. **Coach email quirks:** 18 programs (14 in D-I) use the same email for head and assistant coach (for example one shared team inbox), so **do not make coach email unique per program.** A few emails are not in a clean single-address form and need cleanup. No row has an email without a name.
-7. **Rank:** the Massey rank is filled for 1,526 of 1,669 rows (all D-I; NJCAA has 113 blank). Rows with a blank rank get **no competitiveness band** ("Unranked"), and the filter must say so.
-8. **Match quality:** nearly all rows are "high" confidence. 5 D-II/NAIA rows are low, medium or manually matched, and 5 D-II/NAIA rows have no IPEDS name; check those UNITIDs by hand.
+7. **Rank:** the Massey rank is filled for 1,520 of the 1,662 rows (all 347 of D-I, 274 of 282 D-II, 405 of 416 D-III, 193 of 203 NAIA, 301 of 414 NJCAA). Rows with a blank rank get **no competitiveness band** ("Unranked"), and the filter must say so.
+8. **Match quality:** UNITID quality was checked by comparing names and cities to IPEDS (the source `HD2025_INSTNM` column is just the IPEDS name of the UNITID, so it cannot validate it). After the fixes: 1,637 ok, 20 name differs (SUNY and similar wording), 2 shared parent data, 3 campus check (IPEDS record is a different campus of the same school). On rows whose UNITID changed, `HD2025_INSTNM` still holds the old school's name; it is not imported.
 
 ---
 
@@ -76,14 +72,14 @@ Five CSV files, 25 columns each (the NJCAA file has an extra blank header at the
 |---|---|
 | Where logins live | Supabase's own `auth.users` (managed; never altered by us). Our table `app_user` is 1:1 with it. |
 | Username | Stored in `app_user.username` (unique, case-insensitive, 4-30 chars, letters/numbers/dot/underscore). **Supabase signs in by email, not username**, so the sign-in screen calls a small server-side function that finds the email for the username and signs in. The email is never returned to the browser, and the error message is the same for "no such user" and "wrong password". |
-| Email | The real family email is the Supabase login email. **One email = one account**, so two siblings in the club need different emails. Please confirm this is acceptable. |
+| Email | The real family email is the Supabase login email, and **email is the sign-in** for the pilot (WP0). **One email = one account**, so siblings need different emails (confirmed). |
 | Role | Stored in `app_user.role` (athlete / staff / admin). **Never stored in user-editable metadata**; a user could rewrite that. RLS reads the role from our table. |
-| Sign-up | Open sign-up with email confirmation ON and a CAPTCHA. A database trigger creates the matching `app_user` row with role = athlete. |
+| Sign-up | Open sign-up with a **shared pilot code** (WP0); email confirmation OFF and no CAPTCHA. The code must be checked on the server side (not only in the browser) before the account works. A database trigger creates the matching `app_user` row with role = athlete and stores the one-line acknowledgement (checkbox + timestamp). |
 | Staff and admin accounts | Staff register through the same URL, then an admin promotes them (role change plus a `staff_profile` row) from the Users page. The first admin is set by you directly in the database. Role changes go through a server function that checks the caller is an admin. |
 | Athlete record | Created by the app at the end of onboarding step 1 (first/last name, DOB, grad year, state, team, primary position). One athlete per user (unique). Until then the user has an account but no athlete row. |
-| Coordinator link | Athlete picks a coordinator during onboarding, and admin can also assign (Section 5, `athlete_staff_assignment`). |
+| Coordinator link | **Pilot: admin assigns in the dashboard** (Section 5, `athlete_staff_assignment`). Athlete self-pick is deferred. |
 | Sessions | Supabase defaults; the doc's 2-hour staff idle timeout is a Supabase setting (available on paid plans). |
-| Auth emails | Verification and password-reset messages are Supabase Auth emails. **Supabase's built-in email sender has a very low send limit and is meant for testing**; set up a real SMTP provider before the pilot. |
+| Auth emails | Only password-reset messages are sent, since email confirmation is off. **Supabase's built-in email sender has a very low send limit and is meant for testing**; the pilot uses **Resend** as the SMTP provider. |
 
 ---
 
@@ -184,11 +180,12 @@ Also on the athlete's profile but **not stored**: social handles and external-pr
 **conference** (lookup): PK id; name; FK division. UQ (division, name). Built from the distinct values in the files.
 
 **college**: **PK unitid (integer, from IPEDS)**.
-- name (NOT NULL), short_name, city, state (FK state), zip, latitude, longitude, website_url, control (enum public/private), enrollment, campus_setting (enum), selectivity (enum), religious_affiliation, cost_url, tuition_in_state, tuition_out_state.
-- The files supply only name, city, state and control. Everything else is nullable and filled by the IPEDS enrichment (Section 1, item 4).
+- name (NOT NULL), short_name, city, state (FK state), zip, latitude, longitude, website_url, control (enum public/private; files give Public/Private, `ipeds_control` also has Private for-profit), enrollment, enrollment_term, campus_setting (enum), locale_code, selectivity (enum), admit_rate, religious_affiliation (not in the files), cost_url (= `net_price_url`), tuition_in_state, tuition_out_state, tuition_year.
+- **`unitid` is a plain integer key, not tied to an IPEDS table:** three rows use owner-assigned ids (Section 1, item 2).
+- Name, city, state and control come from the source file; everything else comes from the IPEDS enrichment already in the files (Section 1, item 4) and is nullable.
 - CK: latitude -90..90, longitude -180..180, enrollment > 0.
 
-**college_major**: PK (unitid, major_category). Empty until majors data is loaded.
+**college_major**: PK (unitid, major_category). Loaded from `college_major.csv` (26,351 rows). Categories come from `major_category.csv` (25 codes, e.g. BUSN, HLTH, KINE).
 
 **college_program**: PK id (own surrogate key; see Section 1).
 - FK unitid (NOT NULL); FK sport (volleyball) and program_type (women's); FK division (NOT NULL); FK conference.
@@ -206,9 +203,9 @@ Also on the athlete's profile but **not stored**: social handles and external-pr
 - `owner_athlete_id`: NULL = shared master record; set = private to that athlete (and their staff).
 - From the files: head coach, assistant coach and recruiting coordinator (each a name and an email) become up to three rows per program. Blank slots create no row.
 
-**custom_college**: PK id; FK owner athlete (NOT NULL); name, city, state, division (nullable), conference_text, website_url, notes; status (enum: private / promoted / rejected); promoted_program_id (FK, nullable). Low priority; this is the "add a school we don't have" page and can be cut from the first release if the data is complete.
+**custom_college**: PK id; FK owner athlete (NOT NULL); name, city, state, division (nullable), conference_text, website_url, notes; status (enum: private / promoted / rejected); promoted_program_id (FK, nullable). **Not built for the pilot** (MVP 12.5).
 
-**zip_location** (lookup): PK zip; latitude, longitude. Needed only for the distance filter and loaded once from public ZIP-centroid data.
+**zip_location** (lookup): PK zip; latitude, longitude. Loaded once from `zip_location.csv` (33,144 rows, Census 2020 ZIP-area centres). Needed only for the distance filter, which is **not in the pilot**, so loading it can wait.
 
 ### 5.4 Athlete's college list, activity and reminders
 
@@ -357,10 +354,25 @@ Create three test accounts (athlete A, athlete B, staff assigned to A only) plus
 
 ---
 
-## 9. Conflicts and open questions (need your answer)
+## 9. Conflicts and open questions (status after WP0)
 
-| # | Item | My assumption / recommendation |
+| # | Item | Status / decision |
 |---|---|---|
+| 1 | **How many colleges?** | **Settled:** 1,662 programs (Section 1). |
+| 2 | **UNITID conflicts** | **Settled:** corrected by the owner; unique now. Three owner-assigned campus ids. |
+| 3 | **Search filters: distance, size, major** | **Settled:** enrichment done. Size, setting, selectivity and major are in the pilot; **distance is not**. |
+| 4 | **Email** | **Settled:** no digest and no coach-update email; Home still lists overdue steps; password-reset email stays (Resend); no email confirmation at sign-up. |
+| 5 | **How staff get linked to athletes** | **Settled:** admin assigns in the dashboard (pilot). |
+| 6 | **Competitiveness preference:** multi-select of the six bands; boundary rule | Open detail: "up to and including 10%" is band 1 (my suggestion, to confirm at WP4). Unranked programs get no band. |
+| 7 | **Massey rank and rating** | Rank to `division_rank` (needed for bands); rating stored but unused; Tier ignored. |
+| 8 | **Terms, privacy and parent consent** | **Settled for the pilot:** one acknowledgement checkbox at sign-up, stored on `app_user` with a timestamp (wording in MVP 12.1). No consent tables. |
+| 9 | **Account lockout after repeated failed logins** | Accept Supabase's rate limits for the pilot; removed from the checklist. |
+| 10 | **Siblings** | **Settled:** different email per athlete. |
+| 11 | **Custom colleges** | **Settled:** not built for the pilot. |
+| 12 | **Staff 2-hour session timeout** | Accept default session lengths for the pilot. |
+| 13 | **Shared pilot code** (new) | How the code is enforced on the server without custom server code needs a design choice before WP5 (for example a database function called at sign-up, or a check when the `app_user` row is created). |
+
+---|---|---|
 | 1 | **How many colleges?** Files hold ~1,650 programs; D3 said ~5,000. | Load the 1,650 as programs; load all ~5,000 institutions only if you want athletes to add schools with no team. |
 | 2 | **UNITID conflicts** (11 IDs, 26 rows, Section 1) | You correct the wrong matches in the source files; merged institutions load as one college with several programs. |
 | 3 | **Search filters: distance, size, major** cannot work from the current files. | Add a one-time IPEDS enrichment (lat/long, enrollment, setting, majors) plus a ZIP table. Otherwise hide those filters. |

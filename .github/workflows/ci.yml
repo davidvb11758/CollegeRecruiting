@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The Supabase service key must never be in the app or the repo
+        run: |
+          if git grep -nIi -e 'service_role' -e 'SUPABASE_SERVICE' -e 'sb_secret_' -- app ':!*.md'; then
+            echo "Found a reference to a service/secret key in the app."; exit 1
+          fi
+      - name: No env files committed
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'; then
+            echo "An env file is committed."; exit 1
+          fi
+      - name: Migration files are named correctly
+        run: |
+          bad=$(ls supabase/migrations | grep -Ev '^[0-9]{14}_[a-z0-9_]+\.sql$' || true)
+          if [ -n "$bad" ]; then echo "Bad migration names: $bad"; exit 1; fi
