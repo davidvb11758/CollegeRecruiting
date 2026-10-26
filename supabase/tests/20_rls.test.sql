@@ -245,7 +245,7 @@ begin
   perform tests.world();
   ux := tests.gid('admin_x');
   return next is(tests.q_count(ux, 'select count(*) from public.athlete where home_state = ''IA'' and first_name = ''Test'''), 2::bigint, 'admin sees every athlete');
-  return next is(tests.q_count(ux, 'select count(*) from public.athlete_college'), 2::bigint, 'admin sees every list');
+  return next is(tests.q_count(ux, 'select count(*) from public.athlete_college where athlete_id in (select id from public.athlete where first_name = ''Test'')'), 2::bigint, 'admin sees every list');
   return next is(tests.q_count(ux, 'select count(*) from public.app_user where display_name = ''Test User'''), 6::bigint, 'admin sees every account');
   return next is(tests.q_count(ux, 'select count(*) from public.staff_roster where first_name = ''Test'''), 2::bigint, 'admin roster has both athletes');
   return next is(tests.q_affected(ux, format($q$update public.athlete set preferred_name = 'Admin edit' where id = %L$q$, tests.gid('athlete_b'))), 1::bigint, 'admin can edit any athlete');

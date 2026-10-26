@@ -8,6 +8,9 @@ import Account from './pages/Account'
 import CollegeDetail, { StaffCollegeDetail } from './pages/CollegeDetail'
 import CreateProfile from './pages/CreateProfile'
 import Find, { StaffFind } from './pages/Find'
+import Home from './pages/Home'
+import ListHub from './pages/ListHub'
+import MyList from './pages/MyList'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import Placeholder from './pages/Placeholder'
@@ -41,8 +44,9 @@ export default function App() {
           <Route element={<RequireRole roles={['athlete']} />}>
             <Route path="/profile/create" element={<CreateProfile />} />
             <Route element={<AthleteLayout />}>
-              <Route path="/home" element={<Placeholder title="Home" />} />
-              <Route path="/list" element={<Placeholder title="My List" />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/list" element={<MyList />} />
+              <Route path="/list/:listId/*" element={<ListHub />} />
               <Route path="/find" element={<Find />} />
               <Route path="/find/:programId" element={<CollegeDetail />} />
               <Route path="/profile/*" element={<Profile />} />

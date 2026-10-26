@@ -223,6 +223,20 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - Rules visible to the user: cap of 30 with a clear message; stage and priority changes write a system entry; completing a step offers "log it?"; one open step per college.
 - **AC:** end-to-end athlete walkthrough passes (Section 5); system entries cannot be edited; dates compare in America/Chicago.
 
+**WP8 status: code DONE 2026-10-26; waiting for your hands-on test.** No new migration (the tables, rules and views from WP2/WP3 were enough). Built in `app/`:
+- **Home** (`/home`): profile percentage with a link to finish it and a prompt to set preferences; **Overdue** and **Due this week** next steps (soonest first, "Overdue by 2 days", "added by your coordinator"), a count of later ones; **No recent contact** (colleges still being pursued with 21+ days quiet, longest first; closed, committed and removed ones left out; the 21 comes from the `silent_days` setting); **Recent activity** (newest real entries with college names and "added by <coordinator>"; automatic and deleted entries left out).
+- **My List** (`/list`): priority, stage and "removed" filters, four sorts (priority, longest quiet, next step due, name), "N of 30 colleges", a next-step line on each card, filters kept in the page address, a link to Find Colleges when empty.
+- **College page** (`/list/:id`): header (priority, stage, main contact, link to the database record), the **next step card** (Done, Change, Skip, or Set a next step; one open step only), and three tabs.
+  - **Overview:** priority, stage, closing reason (required when closed), main coach, questionnaire tick (dated in the club day), "why I like it", notes, and Remove from My List (two taps; history kept; Restore from the page).
+  - **Activity:** timeline newest first with a type filter; log, edit and delete (hide) your own entries; automatic entries are labelled and have no buttons; coordinator entries are labelled; direction required for emails, calls, texts and video calls; dates in the future refused; flagging "I need to follow up" offers the next step.
+  - **Contacts:** shared coaches plus the athlete's own; tap to email or call, Copy, make or clear the main contact; add, edit and delete your own contacts (private to the athlete and their coordinators).
+- **"Log it?"**: marking a step done offers to log it, pre-filled from the step, then offers to set the next step. Skipping a step also offers the next one.
+- **Dates** use the Chicago day everywhere (`clubToday`), not the browser's or UTC.
+- **Tests:** 209 app tests (63 new: the screens above, sorting, date and time-zone rules; breaking the silent-college rule made a test fail) and `50_list_flow.test.sql` (day buckets in the club day, remove and restore, automatic entries cannot be edited or hidden, coordinator entries labelled staff by the database, own contacts and main coach). 62 database checks pass on DEV.
+- **Found and fixed on the way:** a pre-filled pick-list would not show if the list loaded after the form (forms now wait for their lists); older security tests now count only their own rows.
+- **Left for later, as scoped:** Add a college not in the database (A6), All Next Steps and All Activity pages (Home and per-college timelines cover them), the "narrow your list" hint.
+- **Not yet proven live:** a real athlete walking through the whole flow in the browser, and a phone-sized run.
+
 
 
 ### WP9 Club staff area (5 days)

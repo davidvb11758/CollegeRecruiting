@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { Button, Message, SecondaryButton } from '../components/ui'
+import CoachCard from '../components/CoachCard'
+import { Button, Message } from '../components/ui'
 import { useAuth } from '../lib/authContext'
 import { useAddToList, useCollegeDetail, useListEntries } from '../lib/collegeHooks'
 import {
   bandLabel,
-  coachTitleLabel,
   controlLabel,
   daysSince,
   formatMoney,
@@ -16,31 +16,8 @@ import {
   settingLabel,
   sizeLabel,
 } from '../lib/collegeLabels'
-import type { Row } from '../lib/profileApi'
 
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
-
-function CopyButton({ value, what }: { value: string; what: string }) {
-  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-      setStatus('copied')
-    } catch {
-      setStatus('failed')
-    }
-  }
-  return (
-    <span className="flex items-center gap-2">
-      <SecondaryButton type="button" className="min-h-9 px-3 text-sm" onClick={() => void copy()} aria-label={`Copy ${what}`}>
-        Copy
-      </SecondaryButton>
-      <span role="status" className="text-sm text-slate-600">
-        {status === 'copied' ? 'Copied' : status === 'failed' ? 'Could not copy. Select the text instead.' : ''}
-      </span>
-    </span>
-  )
-}
 
 function ExternalLink({ href, children }: { href: unknown; children: string }) {
   const url = text(href)
@@ -59,41 +36,6 @@ function Fact({ label, value }: { label: string; value: string }) {
       <dt className="text-slate-600">{label}</dt>
       <dd>{value}</dd>
     </>
-  )
-}
-
-function CoachCard({ coach }: { coach: Row }) {
-  const email = text(coach.email)
-  const phone = text(coach.phone)
-  return (
-    <li className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3">
-      <span className="font-medium">
-        {text(coach.full_name)}
-        {coach.owner_athlete_id != null && <span className="ml-2 text-xs font-normal text-slate-600">(added by you)</span>}
-      </span>
-      <span className="text-sm text-slate-600">
-        {coachTitleLabel(coach.title)}
-        {coach.is_primary_recruiting_contact === true && ' · Main recruiting contact'}
-      </span>
-      {email && (
-        <span className="flex flex-wrap items-center gap-x-3">
-          <a href={`mailto:${email}`} className="flex min-h-11 items-center break-all text-red-900 underline">
-            {email}
-          </a>
-          <CopyButton value={email} what={`email for ${text(coach.full_name)}`} />
-        </span>
-      )}
-      {phone && (
-        <span className="flex flex-wrap items-center gap-x-3">
-          <a href={`tel:${phone}`} className="flex min-h-11 items-center text-red-900 underline">
-            {phone}
-          </a>
-          <CopyButton value={phone} what={`phone for ${text(coach.full_name)}`} />
-        </span>
-      )}
-      {text(coach.recruits_note) && <span className="text-sm text-slate-600">{text(coach.recruits_note)}</span>}
-      <ExternalLink href={coach.staff_page_url}>Staff page</ExternalLink>
-    </li>
   )
 }
 

@@ -140,6 +140,8 @@ function makeQuery(world: FakeWorld, tables: Record<string, Row[]>, calls: { tab
     upsert: (p: unknown, opts?: { onConflict?: string }) => ((mode = 'upsert'), (payload = p), (conflict = (opts?.onConflict ?? 'id').split(',')), q),
     delete: () => ((mode = 'delete'), q),
     eq: (col: string, value: unknown) => (filters.push((r) => r[col] === value), q),
+    is: (col: string, value: null) => (filters.push((r) => (r[col] ?? null) === value), q),
+    neq: (col: string, value: unknown) => (filters.push((r) => r[col] !== value), q),
     in: (col: string, values: unknown[]) => (filters.push((r) => values.includes(r[col])), q),
     order: (col: string, opts?: { ascending?: boolean; nullsFirst?: boolean }) => (orders.push({ col, asc: opts?.ascending !== false, nullsFirst: opts?.nullsFirst ?? false }), q),
     ilike: (col: string, pattern: string) => (filters.push((r) => likeToRegExp(pattern).test(String(r[col] ?? ''))), q),
