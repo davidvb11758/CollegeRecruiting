@@ -235,3 +235,35 @@ export function SectionForm({
     </form>
   )
 }
+
+/** A group of tick boxes whose ticked values are held by the page (not by a form library). */
+export function CheckList({
+  legend,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string
+  options: { value: string; label: string }[]
+  value: string[]
+  onChange: (next: string[]) => void
+}) {
+  return (
+    <fieldset className="flex flex-col gap-1">
+      <legend className="text-sm font-medium">{legend}</legend>
+      <div className="flex flex-wrap gap-x-4">
+        {options.map((o) => (
+          <label key={o.value} className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-5"
+              checked={value.includes(o.value)}
+              onChange={(e) => onChange(e.target.checked ? [...value, o.value] : value.filter((v) => v !== o.value))}
+            />
+            {o.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}

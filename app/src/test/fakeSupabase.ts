@@ -17,8 +17,10 @@ export type FakeWorld = {
   signUpSession: boolean
   /** Extra or replacement table contents, by table name. */
   tables: Record<string, Row[]>
-  /** The error the next write to this table should fail with. */
+  /** The error every write to this table should fail with. */
   failWrites: Record<string, ErrorLike>
+  /** The error every read of this table should fail with. */
+  failReads: Record<string, ErrorLike>
 }
 
 export function makeSession(email = 'family@example.com'): Session {
@@ -43,6 +45,8 @@ const LOOKUPS: Record<string, Row[]> = {
   division: [
     { code: 'NCAA_D1', label: 'NCAA Division I', sort_order: 1 },
     { code: 'NCAA_D2', label: 'NCAA Division II', sort_order: 2 },
+    { code: 'NCAA_D3', label: 'NCAA Division III', sort_order: 3 },
+    { code: 'NAIA', label: 'NAIA', sort_order: 4 },
   ],
   team: [{ id: 'team-1', name: 'Iowa Rockets 16R' }],
 }
@@ -58,6 +62,36 @@ export const ATHLETE_ROW: Row = {
   home_state: 'IA',
 }
 
+/** Same rule as the database: % is any text, a backslash makes the next character plain. */
+function likeToRegExp(pattern: string): RegExp {
+  const plain = (c: string) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  let out = ''
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i]
+    if (c === '\\' && i + 1 < pattern.length) out += plain(pattern[++i])
+    else if (c === '%') out += '.*'
+    else if (c === '_') out += '.'
+    else out += plain(c)
+  }
+  return new RegExp(`^${out}$`, 'i')
+}
+
+function compare(orders: { col: string; asc: boolean; nullsFirst: boolean }[]) {
+  return (a: Row, b: Row) => {
+    for (const { col, asc, nullsFirst } of orders) {
+      const x = a[col]
+      const y = b[col]
+      if (x == null && y == null) continue
+      if (x == null) return nullsFirst ? -1 : 1
+      if (y == null) return nullsFirst ? 1 : -1
+      if (x === y) continue
+      const result = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))
+      return asc ? result : -result
+    }
+    return 0
+  }
+}
+
 type Mode = 'select' | 'insert' | 'update' | 'upsert' | 'delete'
 
 /** A tiny in-memory table store that answers the query shapes the app uses. */
@@ -65,13 +99,15 @@ function makeQuery(world: FakeWorld, tables: Record<string, Row[]>, calls: { tab
   let mode: Mode = 'select'
   let payload: unknown
   let conflict: string[] = []
-  let orderBy: string | null = null
+  const orders: { col: string; asc: boolean; nullsFirst: boolean }[] = []
   let one = false
+  let wantCount = false
+  let slice: [number, number] | null = null
   const filters: ((r: Row) => boolean)[] = []
 
   const run = () => {
     const rows = (tables[table] ??= [])
-    const failure = mode !== 'select' ? world.failWrites[table] : undefined
+    const failure = mode !== 'select' ? world.failWrites[table] : world.failReads[table]
     if (mode !== 'select') calls.push({ table, mode, payload })
     if (failure) return { data: null, error: failure }
     const match = (r: Row) => filters.every((f) => f(r))
@@ -89,21 +125,26 @@ function makeQuery(world: FakeWorld, tables: Record<string, Row[]>, calls: { tab
       tables[table] = rows.filter((r) => !match(r))
     } else {
       let found = rows.filter(match)
-      if (orderBy) found = [...found].sort((a, b) => Number(a[orderBy!] ?? 0) - Number(b[orderBy!] ?? 0))
-      return { data: one ? (found[0] ?? null) : found, error: null }
+      if (orders.length) found = [...found].sort(compare(orders))
+      const total = found.length
+      if (slice) found = found.slice(slice[0], slice[1] + 1)
+      return { data: one ? (found[0] ?? null) : found, error: null, count: wantCount ? total : null }
     }
     return { data: null, error: null }
   }
 
   const q = {
-    select: () => q,
+    select: (_columns?: string, opts?: { count?: string }) => ((wantCount = opts?.count === 'exact'), q),
     insert: (p: unknown) => ((mode = 'insert'), (payload = p), q),
     update: (p: unknown) => ((mode = 'update'), (payload = p), q),
     upsert: (p: unknown, opts?: { onConflict?: string }) => ((mode = 'upsert'), (payload = p), (conflict = (opts?.onConflict ?? 'id').split(',')), q),
     delete: () => ((mode = 'delete'), q),
     eq: (col: string, value: unknown) => (filters.push((r) => r[col] === value), q),
     in: (col: string, values: unknown[]) => (filters.push((r) => values.includes(r[col])), q),
-    order: (col: string) => ((orderBy = col), q),
+    order: (col: string, opts?: { ascending?: boolean; nullsFirst?: boolean }) => (orders.push({ col, asc: opts?.ascending !== false, nullsFirst: opts?.nullsFirst ?? false }), q),
+    ilike: (col: string, pattern: string) => (filters.push((r) => likeToRegExp(pattern).test(String(r[col] ?? ''))), q),
+    contains: (col: string, values: unknown[]) => (filters.push((r) => Array.isArray(r[col]) && values.every((v) => (r[col] as unknown[]).includes(v))), q),
+    range: (from: number, to: number) => ((slice = [from, to]), q),
     maybeSingle: () => ((one = true), Promise.resolve(run())),
     then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => Promise.resolve(run()).then(resolve, reject),
   }
@@ -121,6 +162,7 @@ export function makeFakeSupabase(initial: Partial<FakeWorld> = {}) {
     signUpSession: true,
     tables: {},
     failWrites: {},
+    failReads: {},
     ...initial,
   }
   const tables: Record<string, Row[]> = {

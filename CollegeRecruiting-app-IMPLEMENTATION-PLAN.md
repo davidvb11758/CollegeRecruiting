@@ -206,6 +206,15 @@ Pilot cuts from DATA-MODEL: skip `custom_college`, `correction_report`, athlete-
 - A5: facts, program links, coach contacts (tap to copy / email / call), last-verified date, "Add to My List".
 - **AC:** each filter returns the right set on a known sample; search under 2 seconds; no "Report a correction" button in the pilot.
 
+**WP7 status: code DONE 2026-10-26; waiting for your hands-on test.** Built in `app/`, plus migration `20261027100000_program_search_division_sort.sql` (applied to DEV; adds the division order to `program_search` so "Division, best ranked first" sorts D1, D2, D3, NAIA, NJCAA).
+- **Find Colleges** (`/find`): search by part of the name (any case; `%` and `_` typed by the family are matched as plain characters), and filters for division, state (any number), conference, public/private, program level 1-6, school size, campus setting, admission selectivity, and major offered. **No distance filter** (WP0). Filters combine with AND and live in the page address, so Back from a college returns to the same search. Sorts: name, division then rank, state. 25 results at a time with "Show more", the count shown, "On My List" badges, and "Match my preferences" (applies divisions, levels, sizes, public/private and setting from the saved preferences). Dropped programs are not shown.
+- **College page** (`/find/:id`): school facts (public/private, setting, students, admission and admit rate, tuition), program level and rank, last season, links (program page, questionnaire, camps, college site, cost, social), coach contacts (tap to email or call, Copy button, main recruiting contact marked, former coaches hidden, the athlete's own contacts included, other families' hidden), and the last-verified date. **No "Report a correction"** button.
+- **Add to My List:** adds the entry (30-college limit and one-per-college come from the database, with readable messages); an archived entry is restored instead of duplicated; the first add shows the "20 to 30, then narrow to 10 to 15" tip.
+- **Staff** (`/staff/find`): same search and college page without the add button or preference matching; WP9 adds the athlete context (`FindScreen` and `CollegeDetailScreen` already take an optional athlete).
+- **Tests:** 146 app tests (all filters, sorts, paging, address round-trip, college page, add/restore/full list, staff view; a deliberately broken filter made 6 fail) and `40_find_colleges.test.sql`, which runs the exact filter predicates AS an athlete on an 11-program sample (name, division, state, conference, control, size, setting, selectivity, band, major, AND-combinations, missing facts, sorts, LIKE escaping). All database checks pass on DEV. Search on all 1,662 programs plans at about 50 ms in the database.
+- **Also fixed:** each app instance now has its own query cache (a shared cache leaked between tests); failed loads retry once then show "Try again".
+- **Not yet proven live:** a real athlete searching and adding in the browser, and a phone-sized run. Contact details are only as good as the loaded data (636 programs have no coach listed; 21 share an inbox).
+
 
 
 ### WP8 My College List, activity and next steps (8 days)

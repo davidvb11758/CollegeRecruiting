@@ -12,6 +12,8 @@ export function friendlyDbError(error: unknown): string {
   if (message.includes('at most 2 guardians')) return 'You can add at most 2 parents or guardians.'
   if (message.includes('at most 3 video')) return 'You can add at most 3 video links.'
   if (message.includes('at most 3 intended majors')) return 'Choose at most 3 intended majors.'
+  if (message.includes('list is limited to')) return 'Your list is full (30 colleges). Archive one before adding another.'
+  if (e.code === '23505' && message.includes('athlete_college')) return 'This college is already on your list.'
   if (e.code === '42501' || message.includes('row-level security') || message.includes('permission denied')) {
     return 'You do not have permission to save this. Sign out and in again, or contact your coordinator.'
   }

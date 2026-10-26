@@ -5,8 +5,8 @@ import { fetchLookups, fetchProfile } from './profileApi'
 export const profileKey = (athleteId: string) => ['profile', athleteId] as const
 
 /** Everything on the athlete's profile, loaded together. Screens take an athlete id so staff can reuse them. */
-export function useProfile(athleteId: string) {
-  return useQuery({ queryKey: profileKey(athleteId), queryFn: () => fetchProfile(athleteId) })
+export function useProfile(athleteId: string, enabled = true) {
+  return useQuery({ queryKey: profileKey(athleteId), queryFn: () => fetchProfile(athleteId), enabled })
 }
 
 export function useLookups() {

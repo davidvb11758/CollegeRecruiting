@@ -247,7 +247,7 @@ begin
   return next is(tests.q_count(ux, 'select count(*) from public.athlete where home_state = ''IA'' and first_name = ''Test'''), 2::bigint, 'admin sees every athlete');
   return next is(tests.q_count(ux, 'select count(*) from public.athlete_college'), 2::bigint, 'admin sees every list');
   return next is(tests.q_count(ux, 'select count(*) from public.app_user where display_name = ''Test User'''), 6::bigint, 'admin sees every account');
-  return next is(tests.q_count(ux, 'select count(*) from public.staff_roster'), 2::bigint, 'admin roster has both athletes');
+  return next is(tests.q_count(ux, 'select count(*) from public.staff_roster where first_name = ''Test'''), 2::bigint, 'admin roster has both athletes');
   return next is(tests.q_affected(ux, format($q$update public.athlete set preferred_name = 'Admin edit' where id = %L$q$, tests.gid('athlete_b'))), 1::bigint, 'admin can edit any athlete');
   return next ok(tests.q_fails(ux, 'delete from public.athlete'), 'even admin cannot delete an athlete from the app');
   return next ok(tests.q_fails(ux, $q$update public.app_user set role = 'athlete'$q$), 'admin changes roles in the dashboard, not the app');
