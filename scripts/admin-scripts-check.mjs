@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { queryRows } from './lib/cli-json.mjs'
 
 const DEV_REF = 'ewqocjaurrkamkhhwgll'
 const ref = readFileSync('supabase/.temp/project-ref', 'utf8').trim()
@@ -262,10 +263,9 @@ try {
     const problems = []
     let rows = []
     try {
-      const out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-f', path], { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
+      const out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-o', 'json', '-f', path], { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
       if (c.error) problems.push(`expected an error matching ${c.error}, but it ran`)
-      const json = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
-      rows = json.rows ?? []
+      rows = queryRows(out)
     } catch (e) {
       // the service wraps the database message in JSON, so quotes arrive backslash-escaped
       const text = `${e.stderr ?? ''}${e.stdout ?? ''}${e.message ?? ''}`.replace(/\\+"/g, '"')

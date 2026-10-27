@@ -13,6 +13,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { queryRows } from './lib/cli-json.mjs'
 
 const DEV_REF = 'ewqocjaurrkamkhhwgll'
 const DIR = 'CollegeInfo'
@@ -40,11 +41,10 @@ let fileNo = 0
 function runSql(sql) {
   const path = join(tmp, `q${++fileNo}.sql`)
   writeFileSync(path, sql)
-  const out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-f', path], {
+  const out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-o', 'json', '-f', path], {
     encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
   })
-  const json = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
-  return json.rows ?? []
+  return queryRows(out)
 }
 
 // ---------------------------------------------------------------------------------------------

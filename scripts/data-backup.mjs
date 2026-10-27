@@ -14,6 +14,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { queryRows } from './lib/cli-json.mjs'
 import {
   MASTER_BASE,
   SCRATCH_SCHEMA,
@@ -44,13 +45,19 @@ function query(sql) {
   writeFileSync(path, sql)
   let out
   try {
-    out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-f', path], { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 30 })
+    out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-o', 'json', '-f', path], { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 30 })
   } catch (e) {
     const text = `${e.stderr ?? ''}${e.stdout ?? ''}`.replace(/\\+"/g, '"')
     const line = text.split('\n').find((l) => /ERROR|error/.test(l)) ?? text.slice(0, 300)
     throw new Error(`The database refused the request: ${line.slice(0, 400)}`)
   }
-  return JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)).rows ?? []
+  try {
+    return queryRows(out)
+  } catch (e) {
+    // Show what the Supabase CLI actually said (never data: a reply with no usable JSON holds none), to make a setup problem findable.
+    const said = out.trim().slice(0, 400) || '(nothing)'
+    throw new Error(`Could not read the database reply (${e.message}). The Supabase CLI said: ${said}\nCheck that you are logged in (npx supabase login) and linked to DEV (npm run db:link:dev), then run again.`)
+  }
 }
 
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace(/\..*/, '').replace('T', '-')
@@ -103,14 +110,20 @@ function exportAll() {
   mkdirSync(dir, { recursive: true })
   const manifest = { createdAt: new Date().toISOString(), project: ref, tables: {}, accounts: [] }
   console.log(`Exporting project ${ref}${ref === DEV_REF ? ' (DEV)' : ''} to ${dir}`)
-  for (const t of TABLES) {
-    const rows = query(exportQuery(t))
-    const data = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data
-    writeFileSync(join(dir, `${t.name}.json`), JSON.stringify(data))
-    manifest.tables[t.name] = data.length
-    console.log(`  ${t.name.padEnd(26)} ${String(data.length).padStart(6)} rows`)
+  try {
+    for (const t of TABLES) {
+      const rows = query(exportQuery(t))
+      const data = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data
+      writeFileSync(join(dir, `${t.name}.json`), JSON.stringify(data))
+      manifest.tables[t.name] = data.length
+      console.log(`  ${t.name.padEnd(26)} ${String(data.length).padStart(6)} rows`)
+    }
+    manifest.accounts = presentAccounts()
+  } catch (e) {
+    // A half-written folder must never be mistaken for a backup.
+    rmSync(dir, { recursive: true, force: true })
+    throw e
   }
-  manifest.accounts = presentAccounts()
   writeFileSync(join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2))
   console.log(`\nDone. ${manifest.accounts.length} accounts listed by email (no passwords are saved).`)
   console.log('This folder holds real data about minors: keep it on encrypted storage and never share it.')

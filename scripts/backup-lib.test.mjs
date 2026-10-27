@@ -111,3 +111,13 @@ test('after a restore, the new project own club and team are removed only when n
   assert.ok(clubs.includes('not exists (select 1 from public.app_user'))
   assert.throws(() => tidySeededRows(["x'; drop table athlete; --"], [team]), /not a valid id/)
 })
+
+test('database replies are read in both shapes the Supabase CLI prints', async () => {
+  const { queryRows } = await import('./lib/cli-json.mjs')
+  const rows = [{ n: 1, t: 'a {b} [c]' }]
+  assert.deepEqual(queryRows(`Initialising login role...\n${JSON.stringify(rows, null, 2)}`), rows, 'plain array in an ordinary terminal')
+  assert.deepEqual(queryRows(JSON.stringify({ boundary: 'x', rows, warning: 'w' })), rows, 'object when run by an assistant')
+  assert.deepEqual(queryRows('[]'), [])
+  assert.throws(() => queryRows('┌───┐\n│ n │\n└───┘'), /no JSON in the reply/)
+  assert.throws(() => queryRows(''), /nothing/)
+})

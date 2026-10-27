@@ -5,12 +5,13 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { queryRows } from './lib/cli-json.mjs'
 
 const withTests = process.argv.includes('--tests')
 const run = (args) => execFileSync('npx', ['supabase', ...args], { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 const parse = (out) => JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
 
-const listed = parse(run(['migration', 'list', '--linked'])).migrations
+const listed = parse(run(['migration', 'list', '--linked', '--output-format', 'json'])).migrations
 const applied = new Set(listed.filter((m) => m.remote).map((m) => m.local ?? m.remote))
 const pending = readdirSync('supabase/migrations')
   .filter((f) => f.endsWith('.sql') && !applied.has(f.slice(0, 14)))
@@ -41,8 +42,8 @@ const tmp = mkdtempSync(join(tmpdir(), 'dryrun-'))
 const file = join(tmp, 'dryrun.sql')
 writeFileSync(file, sql)
 try {
-  const out = run(['db', 'query', '--linked', '-f', file])
-  const rows = (parse(out).rows ?? []).flatMap((r) => Object.values(r)).map(String)
+  const out = run(['db', 'query', '--linked', '-o', 'json', '-f', file])
+  const rows = queryRows(out).flatMap((r) => Object.values(r)).map(String)
   for (const r of rows) console.log(r)
   const bad = rows.filter((l) => /^\s*not ok/i.test(l) || /Looks like you failed/i.test(l))
   if (bad.length) process.exit(1)

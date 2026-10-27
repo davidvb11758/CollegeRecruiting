@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { queryRows } from './lib/cli-json.mjs'
 
 const testDir = 'supabase/tests'
 const files = readdirSync(testDir).filter((f) => f.endsWith('.test.sql')).sort()
@@ -32,7 +33,7 @@ try {
 
     let out
     try {
-      out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-f', path], {
+      out = execFileSync('npx', ['supabase', 'db', 'query', '--linked', '-o', 'json', '-f', path], {
         encoding: 'utf8',
         shell: true,
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -43,8 +44,7 @@ try {
       continue
     }
 
-    const json = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
-    const lines = (json.rows ?? []).flatMap((row) => Object.values(row)).map(String)
+    const lines = queryRows(out).flatMap((row) => Object.values(row)).map(String)
     const bad = lines.filter((l) => /^not ok/i.test(l) || /^# Looks like/i.test(l))
     total += lines.filter((l) => /^(not )?ok/i.test(l)).length
     console.log(`${bad.length ? 'FAIL' : 'PASS'}  ${file}`)
