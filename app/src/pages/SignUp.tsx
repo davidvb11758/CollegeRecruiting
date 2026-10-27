@@ -42,7 +42,7 @@ export default function SignUp() {
     return (
       <AuthPage title="Check your email">
         <Message kind="info">We sent a link to confirm your email. Open it on this device, then sign in.</Message>
-        <Link to="/sign-in" className="text-red-900 underline">
+        <Link to="/sign-in" className="text-gold underline">
           Back to sign in
         </Link>
       </AuthPage>
@@ -51,7 +51,7 @@ export default function SignUp() {
 
   return (
     <AuthPage title="Create your account">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         You need the sign-up code from your Rockets recruiting coordinator. Each athlete needs their own email address.
       </p>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
@@ -94,7 +94,7 @@ export default function SignUp() {
       </form>
       <p className="text-sm">
         Already have an account?{' '}
-        <Link to="/sign-in" className="text-red-900 underline">
+        <Link to="/sign-in" className="text-gold underline">
           Sign in
         </Link>
       </p>

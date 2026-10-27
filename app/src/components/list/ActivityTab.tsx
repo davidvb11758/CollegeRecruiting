@@ -13,21 +13,16 @@ function Entry({ entry, typeLabel, coachName, onEdit }: { entry: Row; typeLabel:
   const system = entry.source === 'system'
   const meta = [typeLabel, directionLabel(entry.direction), coachName, outcomeLabel(entry.outcome)].filter(Boolean)
   return (
-    <li className={`flex flex-col gap-1 rounded border p-3 ${system ? 'border-slate-200 bg-slate-50' : 'border-slate-300 bg-white'}`}>
-      <p className="text-sm text-slate-600">
+    <li className={`flex flex-col gap-1 rounded border p-3 ${system ? 'border-line bg-ink' : 'border-line bg-surface'}`}>
+      <p className="text-sm text-muted">
         {formatDate(String(entry.activity_date))}
         {system && ' · Automatic'}
         {entry.source === 'staff' && (staffView ? ' · Added by staff' : ' · Added by your coordinator')}
       </p>
-      <p className={system ? 'text-sm text-slate-700' : 'font-medium'}>{String(entry.summary)}</p>
-      {!system && meta.length > 0 && <p className="text-sm text-slate-600">{meta.join(' · ')}</p>}
+      <p className={system ? 'text-sm text-muted' : 'font-medium'}>{String(entry.summary)}</p>
+      {!system && meta.length > 0 && <p className="text-sm text-muted">{meta.join(' · ')}</p>}
       {typeof entry.details_text === 'string' && entry.details_text && <p className="whitespace-pre-line text-sm">{entry.details_text}</p>}
-      {typeof entry.attachment_url === 'string' && entry.attachment_url && (
-        <a href={entry.attachment_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center text-sm text-red-900 underline">
-          Open the linked email or document
-        </a>
-      )}
-      {entry.follow_up_needed === true && <p className="text-sm text-amber-800">Follow-up needed</p>}
+      {entry.follow_up_needed === true && <p className="text-sm text-gold">Follow-up needed</p>}
       {!system && (
         <div className="flex flex-wrap gap-2">
           <SecondaryButton type="button" className="min-h-9 px-3 text-sm" onClick={onEdit}>
@@ -60,7 +55,12 @@ export default function ActivityTab({ listId, coaches, onLog, onEdit }: { listId
   const types = useActivityTypes()
   const [type, setType] = useState('')
   const typeLabel = (code: unknown) => types.data?.find((t) => t.code === code)?.label ?? ''
-  const coachName = (e: Row) => (e.coach_id != null ? String(coaches.find((c) => c.id === e.coach_id)?.full_name ?? '') : typeof e.coach_name_text === 'string' ? e.coach_name_text : '')
+  const coachName = (e: Row) => {
+    const named = (Array.isArray(e.coach_ids) ? e.coach_ids : [])
+      .map((id) => String(coaches.find((c) => c.id === id)?.full_name ?? ''))
+      .filter(Boolean)
+    return named.length > 0 ? named.join(', ') : typeof e.coach_name_text === 'string' ? e.coach_name_text : ''
+  }
   const rows = (activity.data ?? []).filter((e) => !type || e.activity_type_code === type)
 
   return (
@@ -69,7 +69,7 @@ export default function ActivityTab({ listId, coaches, onLog, onEdit }: { listId
         Log activity
       </Button>
       {activity.isPending ? (
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       ) : activity.isError ? (
@@ -84,7 +84,7 @@ export default function ActivityTab({ listId, coaches, onLog, onEdit }: { listId
               id="activity-type-filter"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="min-h-11 rounded border border-slate-400 bg-white px-2 text-base"
+              className="min-h-11 rounded border border-edge bg-surface px-2 text-base"
             >
               <option value="">Everything</option>
               {(types.data ?? []).map((t) => (
@@ -95,7 +95,7 @@ export default function ActivityTab({ listId, coaches, onLog, onEdit }: { listId
             </select>
           </div>
           {rows.length === 0 ? (
-            <p className="text-sm text-slate-600">{type ? 'Nothing of that kind yet.' : 'Nothing logged yet. Log every email, call, visit and camp so you can see the whole story.'}</p>
+            <p className="text-sm text-muted">{type ? 'Nothing of that kind yet.' : 'Nothing logged yet. Log every email, call, visit and camp so you can see the whole story.'}</p>
           ) : (
             <ul aria-label="Activity" className="flex flex-col gap-2">
               {rows.map((e) => (

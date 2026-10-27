@@ -174,7 +174,7 @@ describe('Inside an athlete\'s account', () => {
     expect(overdue).not.toHaveTextContent('your coordinator')
     await user.click(within(overdue).getByRole('link'))
     expect(await screen.findByRole('heading', { name: 'Alpha University' })).toBeInTheDocument()
-    await waitFor(() => expect(seen.path).toBe('/staff/athlete/athlete-9/list/L1/overview'))
+    await waitFor(() => expect(seen.path).toBe('/staff/athlete/athlete-9/list/L1/activity'))
   })
 
   it('lists the athlete\'s colleges and opens one under the same address', async () => {

@@ -19,23 +19,23 @@ function ListCard({ row, base }: { row: Row; base: string }) {
   const silent = Number(row.days_silent)
   return (
     <li>
-      <Link to={`${base}/${text(row.list_id)}`} className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3 hover:border-red-900">
+      <Link to={`${base}/${text(row.list_id)}`} className="flex flex-col gap-1 rounded border border-line bg-surface p-3 hover:border-gold">
         <span className="font-medium">{text(row.college_name)}</span>
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-muted">
           {[placeLabel(row.city, row.state), DIVISION_SHORT[text(row.division_code)] ?? ''].filter(Boolean).join(' · ')}
         </span>
         <span className="flex flex-wrap gap-2 text-sm">
-          <span className="rounded bg-slate-200 px-2 py-0.5">Priority {priorityLabel(row.priority)}</span>
-          <span className="rounded bg-slate-200 px-2 py-0.5">{stageLabel(row.stage)}</span>
-          {row.archived_at != null && <span className="rounded bg-slate-700 px-2 py-0.5 text-white">Removed</span>}
+          <span className="rounded bg-line px-2 py-0.5">Priority {priorityLabel(row.priority)}</span>
+          <span className="rounded bg-line px-2 py-0.5">{stageLabel(row.stage)}</span>
+          {row.archived_at != null && <span className="rounded bg-muted px-2 py-0.5 text-ink">Removed</span>}
         </span>
         {due && !row.archived_at && (
-          <span className={`text-sm ${due.tone === 'overdue' ? 'font-medium text-red-800' : due.tone === 'soon' ? 'font-medium text-amber-800' : 'text-slate-600'}`}>
+          <span className={`text-sm ${due.tone === 'overdue' ? 'font-medium text-danger' : due.tone === 'soon' ? 'font-medium text-gold' : 'text-muted'}`}>
             {text(row.next_step_description)} · {due.text} ({formatDate(text(row.next_step_due_date))})
           </span>
         )}
         {!settled && !row.archived_at && (
-          <span className="text-sm text-slate-600">
+          <span className="text-sm text-muted">
             {row.last_activity_date
               ? `Last activity ${formatDate(text(row.last_activity_date))} (${ago(silent)})`
               : `No activity yet · added ${formatDate(text(row.added_on))}`}
@@ -80,7 +80,7 @@ export function MyListScreen({ athleteId, base }: { athleteId: string; base: str
     <main className="flex flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-semibold">My List</h1>
       {list.isPending ? (
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       ) : list.isError ? (
@@ -90,13 +90,13 @@ export function MyListScreen({ athleteId, base }: { athleteId: string; base: str
         </div>
       ) : (
         <>
-          <p role="status" className="text-sm text-slate-600">
+          <p role="status" className="text-sm text-muted">
             {active.length} of 30 colleges
           </p>
           {all.length === 0 ? (
             <div className="flex flex-col gap-2">
-              <p className="text-slate-600">Your list is empty. Search the database and add the colleges you want to consider. Start with 20 to 30, then narrow to the 10 to 15 you will contact.</p>
-              <Link to={`${prefix}/find`} className="min-h-11 rounded bg-red-900 px-4 py-2.5 text-center font-medium text-white">
+              <p className="text-muted">Your list is empty. Search the database and add the colleges you want to consider. Start with 20 to 30, then narrow to the 10 to 15 you will contact.</p>
+              <Link to={`${prefix}/find`} className="min-h-11 rounded bg-gold px-4 py-2.5 text-center font-medium text-ink">
                 Find Colleges
               </Link>
             </div>
@@ -114,7 +114,7 @@ export function MyListScreen({ athleteId, base }: { athleteId: string; base: str
                 </label>
               )}
               {shown.length === 0 ? (
-                <p className="text-sm text-slate-600">{stage || priority ? 'No colleges match these filters.' : 'Nothing to show.'}</p>
+                <p className="text-sm text-muted">{stage || priority ? 'No colleges match these filters.' : 'Nothing to show.'}</p>
               ) : (
                 <ul aria-label="My colleges" className="flex flex-col gap-2">
                   {shown.map((r) => (

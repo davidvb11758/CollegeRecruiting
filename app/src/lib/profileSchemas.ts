@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ageOn, decimalField, intField, maxText, optionalDate, optionalEmail, optionalUrl, requiredUrl, todayString } from './forms'
+import { ageOn, decimalField, intField, maxText, optionalEmail, requiredUrl, todayString } from './forms'
 
 const name = (label: string) => z.string().trim().min(1, `Enter ${label}`).max(60, 'Use 60 characters or fewer')
 const optionalText = (max = 120) => z.string().trim().max(max, `Use ${max} characters or fewer`)
@@ -66,13 +66,11 @@ export const athleticSchema = z
     blockTouchIn: intField('Block touch', 60, 160),
     dominantHand: z.enum(['', 'right', 'left']),
     clubTeamName: optionalText(),
-    clubLevel: optionalText(60),
     clubCoachName: optionalText(),
     clubCoachEmail: optionalEmail,
     clubCoachPhone: optionalText(30),
     hsCoachName: optionalText(),
     hsCoachEmail: optionalEmail,
-    hsCoachPhone: optionalText(30),
     awardsText: maxText('Awards', 4000),
     statsSummaryText: maxText('Stats', 4000),
     aboutMeText: maxText('About me', 2000),
@@ -84,7 +82,10 @@ export const athleticSchema = z
 
 const eligibility = z.enum(['', 'not_started', 'registered', 'unsure'])
 
-/** A2c */
+/**
+ * A2c. Hidden for now: SAT total, SAT date, ACT date, school counselor name and email. Hidden fields stay in the database and keep
+ * any saved value; to restore one, add it back to the schema, the form and the save in profileApi.ts.
+ */
 export const academicSchema = z
   .object({
     hsName: optionalText(),
@@ -95,15 +96,10 @@ export const academicSchema = z
     classRankText: optionalText(40),
     majorUndecided: z.boolean(),
     intendedMajors: z.array(z.string()).max(3, 'Choose at most 3 intended majors'),
-    satTotal: intField('SAT', 400, 1600),
-    satDate: optionalDate,
     actComposite: intField('ACT', 1, 36),
-    actDate: optionalDate,
     plannedTestDatesText: optionalText(200),
     ncaaEcStatus: eligibility,
     naiaStatus: eligibility,
-    counselorName: optionalText(),
-    counselorEmail: optionalEmail,
   })
   .refine((d) => !(d.majorUndecided && d.intendedMajors.length > 0), {
     path: ['intendedMajors'],
@@ -118,14 +114,11 @@ const handle = z
   .max(60, 'Use 60 characters or fewer')
   .refine((v) => !/\s/.test(v), 'A handle has no spaces')
 
-/** A2d */
+/** A2d. Hidden for now (see A2c): X (Twitter), recruiting profile link, game film link. */
 export const highlightsSchema = z.object({
   videos: z.array(videoSchema).max(3, 'You can add at most 3 video links'),
   instagramHandle: handle,
-  xHandle: handle,
   tiktokHandle: handle,
-  externalProfileUrl: optionalUrl,
-  gameFilmUrl: optionalUrl,
 })
 
 export const DIVISION_INTEREST = ['none', 'open_to', 'top_choice'] as const

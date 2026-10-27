@@ -91,9 +91,9 @@ export default function PersonalForm({ athleteId, profile, lookups }: { athleteI
       <Field label="Jersey number" error={errors.jerseyNumber?.message} {...register('jerseyNumber')} />
 
       <h2 className="text-lg font-semibold">Parents and guardians</h2>
-      <p className="text-sm text-slate-600">Add up to 2. Choose one as the main contact.</p>
+      <p className="text-sm text-muted">Add up to 2. Choose one as the main contact.</p>
       {fields.map((field, index) => (
-        <fieldset key={field.id} className="flex flex-col gap-3 rounded border border-slate-300 bg-white p-3">
+        <fieldset key={field.id} className="flex flex-col gap-3 rounded border border-line bg-surface p-3">
           <legend className="px-1 text-sm font-medium">Parent or guardian {index + 1}</legend>
           <input type="hidden" {...register(`guardians.${index}.id`)} />
           <SelectField label="Relationship" options={RELATIONSHIPS} placeholder="Choose" error={errors.guardians?.[index]?.relationship?.message} {...register(`guardians.${index}.relationship`)} />
@@ -110,8 +110,8 @@ export default function PersonalForm({ athleteId, profile, lookups }: { athleteI
           </SecondaryButton>
         </fieldset>
       ))}
-      {errors.primaryGuardian && <p className="text-sm text-red-700">{errors.primaryGuardian.message}</p>}
-      {errors.guardians?.root && <p className="text-sm text-red-700">{errors.guardians.root.message}</p>}
+      {errors.primaryGuardian && <p className="text-sm text-danger">{errors.primaryGuardian.message}</p>}
+      {errors.guardians?.root && <p className="text-sm text-danger">{errors.guardians.root.message}</p>}
       {fields.length < 2 && (
         <OutlineButton
           type="button"

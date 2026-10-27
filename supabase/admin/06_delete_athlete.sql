@@ -1,7 +1,7 @@
 -- DELETE AN ATHLETE AND ALL THEIR DATA. THIS CANNOT BE UNDONE. Use it only when the family asks for their data to
 -- be removed (or for test accounts). Take an export first (05_export_athlete.sql) if there is any doubt.
 --
--- It removes the sign-in, the profile, the college list, the log, the next steps, the athlete's own coach contacts,
+-- It removes the sign-in, the profile, the college list, the log, the next steps, the notes, the athlete's own coach contacts,
 -- the coordinator assignments, AND the change history about this athlete. Shared college data stays.
 --
 -- Step 1: edit the email, run only the PREVIEW query below to see what would go.
@@ -12,6 +12,7 @@ select a.first_name || ' ' || a.last_name as athlete, u.email,
        (select count(*) from public.athlete_college where athlete_id = a.id) as colleges,
        (select count(*) from public.activity_entry where athlete_id = a.id) as log_entries,
        (select count(*) from public.next_step where athlete_id = a.id) as next_steps,
+       (select count(*) from public.athlete_note where athlete_id = a.id) as notes,
        (select count(*) from public.change_history where athlete_id = a.id) as history_rows
 from public.athlete a join auth.users u on u.id = a.user_id
 where lower(u.email) = lower('ATHLETE_EMAIL');

@@ -87,16 +87,14 @@ export async function fetchActivity(listId: string): Promise<Row[]> {
 export async function saveActivity(ctx: { athleteId: string; listId: string; id?: string }, v: ActivityValues): Promise<void> {
   const row = {
     activity_date: v.activityDate,
-    activity_time: blankToNull(v.activityTime),
     activity_type_code: v.activityTypeCode,
     direction: blankToNull(v.direction),
-    coach_id: v.coachId === '' ? null : Number(v.coachId),
-    coach_name_text: v.coachId === '' ? blankToNull(v.coachNameText) : null,
+    coach_ids: v.coachIds.map(Number),
+    coach_name_text: v.coachIds.length === 0 ? blankToNull(v.coachNameText) : null,
     summary: v.summary.trim(),
     details_text: blankToNull(v.detailsText),
     outcome: blankToNull(v.outcome),
     follow_up_needed: v.followUpNeeded,
-    attachment_url: blankToNull(v.attachmentUrl),
   }
   const sb = client()
   if (ctx.id) ok(await sb.from('activity_entry').update(row).eq('id', ctx.id))

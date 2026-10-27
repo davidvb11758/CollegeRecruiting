@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { NoteInbox } from '../components/notes/NoteParts'
 import Completeness from '../components/profile/Completeness'
 import { Button, Message } from '../components/ui'
 import { useAuth } from '../lib/authContext'
@@ -6,24 +7,25 @@ import { dueLabel, formatDate } from '../lib/dates'
 import type { Row } from '../lib/listApi'
 import { useHome, useActivityTypes } from '../lib/listHooks'
 import { stageLabel } from '../lib/listLabels'
+import { useInbox } from '../lib/noteHooks'
 import { useProfile } from '../lib/profileHooks'
 import { useScope } from '../lib/scope'
 
 const text = (v: unknown) => (v == null ? '' : String(v))
 
-const TONE = { overdue: 'text-red-800 font-medium', soon: 'text-amber-800 font-medium', later: 'text-slate-600' } as const
+const TONE = { overdue: 'text-danger font-medium', soon: 'text-gold font-medium', later: 'text-muted' } as const
 
 function StepRow({ step }: { step: Row }) {
   const { prefix, staffView } = useScope()
   const due = dueLabel(text(step.due_date))
   return (
     <li>
-      <Link to={`${prefix}/list/${text(step.list_id)}`} className="flex flex-col rounded border border-slate-300 bg-white p-3 hover:border-red-900">
+      <Link to={`${prefix}/list/${text(step.list_id)}`} className="flex flex-col rounded border border-line bg-surface p-3 hover:border-gold">
         <span className="font-medium">{text(step.description)}</span>
-        <span className="text-sm text-slate-600">{text(step.college_name)}</span>
+        <span className="text-sm text-muted">{text(step.college_name)}</span>
         <span className={`text-sm ${TONE[due.tone]}`}>
           {due.text} · {formatDate(text(step.due_date))}
-          {step.created_source === 'staff' && <span className="font-normal text-slate-600"> · added by {staffView ? 'staff' : 'your coordinator'}</span>}
+          {step.created_source === 'staff' && <span className="font-normal text-muted"> · added by {staffView ? 'staff' : 'your coordinator'}</span>}
         </span>
       </Link>
     </li>
@@ -44,6 +46,7 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
   const { prefix, staffView } = useScope()
   const home = useHome(athleteId)
   const profile = useProfile(athleteId)
+  const inbox = useInbox()
   const types = useActivityTypes()
   const typeLabel = (code: unknown) => types.data?.find((t) => t.code === code)?.label ?? ''
 
@@ -51,7 +54,7 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
     return (
       <main className="px-4 py-6">
         <h1 className="mb-2 text-2xl font-semibold">Home</h1>
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       </main>
@@ -77,16 +80,25 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
     <main className="flex flex-col gap-6 px-4 py-6">
       <h1 className="text-2xl font-semibold">Home</h1>
 
+      {!staffView && (
+        <div className="flex flex-col gap-2">
+          <NoteInbox notes={inbox.data ?? []} label="New notes" whoOf={(n) => n.senderName} replyFor={() => '/notes'} />
+          <Link to="/notes" className="flex min-h-11 items-center text-gold underline">
+            Send a note or question to your coordinator
+          </Link>
+        </div>
+      )}
+
       {profile.data && (
-        <section aria-label="Your profile" className="flex flex-col gap-2 rounded border border-slate-300 bg-white p-3">
+        <section aria-label="Your profile" className="flex flex-col gap-2 rounded border border-line bg-surface p-3">
           <Completeness profile={profile.data} />
           {(profile.data.completeness?.pct ?? 0) < 100 && (
-            <Link to={`${prefix}/profile`} className="text-sm text-red-900 underline">
+            <Link to={`${prefix}/profile`} className="text-sm text-gold underline">
               {staffView ? 'Open the profile' : 'Finish your profile'}
             </Link>
           )}
           {needsPreferences && (
-            <Link to={`${prefix}/preferences`} className="text-sm text-red-900 underline">
+            <Link to={`${prefix}/preferences`} className="text-sm text-gold underline">
               {staffView ? 'College Preferences are not set yet' : 'Tell us what you are looking for (My College Preferences)'}
             </Link>
           )}
@@ -110,10 +122,10 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">{overdue.length > 0 ? 'Nothing else due this week.' : 'Nothing is due this week.'}</p>
+          <p className="text-sm text-muted">{overdue.length > 0 ? 'Nothing else due this week.' : 'Nothing is due this week.'}</p>
         )}
         {later.length > 0 && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             {later.length} more next step{later.length === 1 ? '' : 's'} due later. Open My List to see them.
           </p>
         )}
@@ -121,13 +133,13 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
 
       {silent.length > 0 && (
         <Section title="No recent contact">
-          <p className="text-sm text-slate-600">No activity for {silentDays} days or more.</p>
+          <p className="text-sm text-muted">No activity for {silentDays} days or more.</p>
           <ul className="flex flex-col gap-2">
             {silent.map((e) => (
               <li key={text(e.list_id)}>
-                <Link to={`${prefix}/list/${text(e.list_id)}`} className="flex flex-col rounded border border-slate-300 bg-white p-3 hover:border-red-900">
+                <Link to={`${prefix}/list/${text(e.list_id)}`} className="flex flex-col rounded border border-line bg-surface p-3 hover:border-gold">
                   <span className="font-medium">{text(e.college_name)}</span>
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-muted">
                     {stageLabel(e.stage)} · {text(e.days_silent)} days quiet
                   </span>
                 </Link>
@@ -139,9 +151,9 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
 
       <Section title="Recent activity">
         {recent.length === 0 ? (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             Nothing logged yet.{' '}
-            <Link to={`${prefix}/find`} className="text-red-900 underline">
+            <Link to={`${prefix}/find`} className="text-gold underline">
               Find colleges
             </Link>{' '}
             to start your list.
@@ -150,13 +162,13 @@ export function HomeScreen({ athleteId }: { athleteId: string }) {
           <ul className="flex flex-col gap-2">
             {recent.map((a) => (
               <li key={text(a.id)}>
-                <Link to={`${prefix}/list/${text(a.athlete_college_id)}/activity`} className="flex flex-col rounded border border-slate-300 bg-white p-3 hover:border-red-900">
-                  <span className="text-sm text-slate-600">
+                <Link to={`${prefix}/list/${text(a.athlete_college_id)}/activity`} className="flex flex-col rounded border border-line bg-surface p-3 hover:border-gold">
+                  <span className="text-sm text-muted">
                     {formatDate(text(a.activity_date))} · {text(a.college_name)}
                     {a.source === 'staff' && ` · added by ${staffNames[text(a.entered_by)] || (staffView ? 'staff' : 'your coordinator')}`}
                   </span>
                   <span className="font-medium">{text(a.summary)}</span>
-                  {typeLabel(a.activity_type_code) && <span className="text-sm text-slate-600">{typeLabel(a.activity_type_code)}</span>}
+                  {typeLabel(a.activity_type_code) && <span className="text-sm text-muted">{typeLabel(a.activity_type_code)}</span>}
                 </Link>
               </li>
             ))}

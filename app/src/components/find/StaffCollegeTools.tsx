@@ -37,10 +37,10 @@ function FactsForm({ record, programId, onDone }: { record: MasterRecord; progra
       noValidate
       aria-label="Edit college information"
       onSubmit={handleSubmit((v) => write.run(v).then(onDone, () => undefined))}
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white p-3"
+      className="flex flex-col gap-3 rounded border border-line bg-surface p-3"
     >
       <h3 className="font-semibold">Edit college information</h3>
-      <p className="text-sm text-slate-600">Changes are seen by every athlete and are recorded with your name.</p>
+      <p className="text-sm text-muted">Changes are seen by every athlete and are recorded with your name.</p>
       <Field label="Volleyball program page" type="url" error={errors.programUrl?.message} {...register('programUrl')} />
       <Field label="Recruiting questionnaire" type="url" error={errors.questionnaireUrl?.message} {...register('questionnaireUrl')} />
       <Field label="Camps page" type="url" error={errors.campsUrl?.message} {...register('campsUrl')} />
@@ -85,7 +85,7 @@ function CoachForm({ record, programId, coach, onDone }: { record: MasterRecord;
       noValidate
       aria-label={coach ? 'Edit coach' : 'Add a coach'}
       onSubmit={handleSubmit((v) => write.run(v).then(onDone, () => undefined))}
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white p-3"
+      className="flex flex-col gap-3 rounded border border-line bg-surface p-3"
     >
       <h3 className="font-semibold">{coach ? 'Edit this coach' : 'Add a coach'}</h3>
       <Field label="Name" error={errors.fullName?.message} {...register('fullName')} />
@@ -115,7 +115,7 @@ export default function StaffCollegeTools({ programId }: { programId: number }) 
 
   if (master.isPending) {
     return (
-      <p role="status" className="text-slate-600">
+      <p role="status" className="text-muted">
         Loading staff tools…
       </p>
     )
@@ -127,11 +127,11 @@ export default function StaffCollegeTools({ programId }: { programId: number }) 
   const verifiedOn = str(record.program.last_verified_on)
 
   return (
-    <section aria-labelledby="staff-tools" className="flex flex-col gap-3 rounded border-2 border-slate-300 p-3">
+    <section aria-labelledby="staff-tools" className="flex flex-col gap-3 rounded border-2 border-line p-3">
       <h2 id="staff-tools" className="text-lg font-semibold">
         Staff tools
       </h2>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         Verified {verifiedOn ? formatDate(verifiedOn) : 'never'}
         {record.verifiedByName && ` by ${record.verifiedByName}`}.
       </p>
@@ -148,7 +148,7 @@ export default function StaffCollegeTools({ programId }: { programId: number }) 
       {editing === 'facts' && <FactsForm record={record} programId={programId} onDone={() => setEditing(null)} />}
 
       <h3 className="font-semibold">Coaches (shared records)</h3>
-      {record.coaches.length === 0 && <p className="text-sm text-slate-600">No coaches are listed yet.</p>}
+      {record.coaches.length === 0 && <p className="text-sm text-muted">No coaches are listed yet.</p>}
       <ul aria-label="Shared coaches" className="flex flex-col gap-2">
         {record.coaches.map((c) =>
           editing === Number(c.id) ? (
@@ -156,10 +156,10 @@ export default function StaffCollegeTools({ programId }: { programId: number }) 
               <CoachForm record={record} programId={programId} coach={c} onDone={() => setEditing(null)} />
             </li>
           ) : (
-            <li key={String(c.id)} className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-300 bg-white p-3">
+            <li key={String(c.id)} className="flex flex-wrap items-center justify-between gap-2 rounded border border-line bg-surface p-3">
               <span>
                 <span className="font-medium">{str(c.full_name)}</span>
-                <span className="block text-sm text-slate-600">
+                <span className="block text-sm text-muted">
                   {coachTitleLabel(c.title)}
                   {c.is_primary_recruiting_contact === true && ' · Main recruiting contact'}
                   {c.employment_status === 'departed' && ' · Left the program'}

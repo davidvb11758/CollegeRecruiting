@@ -1,12 +1,44 @@
 @import "tailwindcss";
 
+/*
+  Iowa Rockets dark theme (docs/UI design): black background, charcoal surfaces, gold for things you can tap,
+  white text. Screens use these names (bg-ink, bg-surface, border-line, text-fg, text-muted, text-gold ...) instead of
+  raw palette colours, so the whole look can be changed here.
+*/
+@theme {
+  --color-ink: #000000; /* page background; black text on gold */
+  --color-surface: #121212; /* cards, navigation bars, inputs */
+  --color-line: #2a2a2a; /* card borders, dividers, chips */
+  --color-edge: #6b6b6b; /* input outlines: lighter than the style guide's #2a2a2a so a field is visible (3:1) */
+  --color-gold: #ffd700; /* primary actions, selected items, due and reminder text */
+  --color-gold-light: #ffe680; /* focus rings, highlights */
+  --color-fg: #f5f5f5; /* headings and body text */
+  --color-muted: #b3b3b3; /* secondary text */
+  --color-danger: #ff7a7a; /* errors and overdue */
+}
+
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--color-ink);
+  color: var(--color-fg);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-gold);
+}
+
+::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 2px;
 }

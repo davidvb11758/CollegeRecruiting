@@ -23,15 +23,10 @@ function defaults(profile: ProfileBundle): AcademicValues {
     classRankText: str(a.class_rank_text),
     majorUndecided: a.major_undecided === true,
     intendedMajors: profile.majors.filter((m) => m.kind === 'intended').map((m) => str(m.major_code)),
-    satTotal: str(a.sat_total),
-    satDate: str(a.sat_date),
     actComposite: str(a.act_composite),
-    actDate: str(a.act_date),
     plannedTestDatesText: str(a.planned_test_dates_text),
     ncaaEcStatus: str(a.ncaa_ec_status) as AcademicValues['ncaaEcStatus'],
     naiaStatus: str(a.naia_status) as AcademicValues['naiaStatus'],
-    counselorName: str(a.counselor_name),
-    counselorEmail: str(a.counselor_email),
   }
 }
 
@@ -69,15 +64,10 @@ export default function AcademicForm({ athleteId, profile, lookups }: { athleteI
       />
 
       <h2 className="text-lg font-semibold">Tests and eligibility</h2>
-      <Field label="SAT total" inputMode="numeric" error={errors.satTotal?.message} {...register('satTotal')} />
-      <Field label="SAT date" type="date" error={errors.satDate?.message} {...register('satDate')} />
       <Field label="ACT composite" inputMode="numeric" error={errors.actComposite?.message} {...register('actComposite')} />
-      <Field label="ACT date" type="date" error={errors.actDate?.message} {...register('actDate')} />
       <Field label="Planned test dates" error={errors.plannedTestDatesText?.message} {...register('plannedTestDatesText')} />
       <SelectField label="NCAA Eligibility Center" options={ELIGIBILITY} placeholder="Choose" error={errors.ncaaEcStatus?.message} {...register('ncaaEcStatus')} />
       <SelectField label="NAIA eligibility" options={ELIGIBILITY} placeholder="Choose" error={errors.naiaStatus?.message} {...register('naiaStatus')} />
-      <Field label="School counselor name" error={errors.counselorName?.message} {...register('counselorName')} />
-      <Field label="School counselor email" type="email" error={errors.counselorEmail?.message} {...register('counselorEmail')} />
     </SectionForm>
   )
 }

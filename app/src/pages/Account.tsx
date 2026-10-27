@@ -14,17 +14,22 @@ export default function Account() {
     <main className="flex flex-col gap-6 px-4 py-6">
       <h1 className="text-2xl font-semibold">Account</h1>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt className="text-slate-600">Name</dt>
+        <dt className="text-muted">Name</dt>
         <dd>{account.displayName}</dd>
-        <dt className="text-slate-600">Email</dt>
+        <dt className="text-muted">Email</dt>
         <dd className="break-all">{account.email}</dd>
-        <dt className="text-slate-600">Role</dt>
+        <dt className="text-muted">Role</dt>
         <dd>{ROLE_LABEL[account.role]}</dd>
       </dl>
       {account.role === 'athlete' && (
-        <Link to="/preferences" className="min-h-11 max-w-md rounded border border-slate-300 bg-white px-4 py-2.5 font-medium text-red-900">
-          My College Preferences
-        </Link>
+        <div className="flex flex-col gap-3">
+          <Link to="/preferences" className="min-h-11 max-w-md rounded border border-line bg-surface px-4 py-2.5 font-medium text-gold">
+            My College Preferences
+          </Link>
+          <Link to="/notes" className="min-h-11 max-w-md rounded border border-line bg-surface px-4 py-2.5 font-medium text-gold">
+            Notes to my coordinator
+          </Link>
+        </div>
       )}
       <section className="flex max-w-md flex-col gap-3">
         <h2 className="text-lg font-semibold">Change password</h2>

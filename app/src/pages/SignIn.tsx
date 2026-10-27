@@ -54,12 +54,12 @@ export default function SignIn() {
         </Button>
       </form>
       <p className="flex flex-col gap-2 text-sm">
-        <Link to="/forgot-password" className="text-red-900 underline">
+        <Link to="/forgot-password" className="text-gold underline">
           Forgot your password?
         </Link>
         <span>
           New here?{' '}
-          <Link to="/sign-up" className="text-red-900 underline">
+          <Link to="/sign-up" className="text-gold underline">
             Create an account
           </Link>
         </span>

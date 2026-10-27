@@ -351,6 +351,15 @@ describe('College page: header and next step', () => {
   })
 })
 
+describe('College page: default tab', () => {
+  it('opens on Activity, not Overview', async () => {
+    start('/list/L1', base({ activity_entry: [] }))
+    expect(await screen.findByRole('button', { name: 'Log activity' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Activity' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current')
+  })
+})
+
 describe('College page: overview', () => {
   const world = () => base({ next_step: [], activity_entry: [] })
 
@@ -417,7 +426,7 @@ describe('College page: overview', () => {
 
 describe('College page: activity', () => {
   const entries: Row[] = [
-    { id: 'a1', athlete_id: ATHLETE, athlete_college_id: 'L1', activity_date: '2026-11-05', activity_type_code: 'email', direction: 'i_contacted', coach_id: 11, summary: 'Sent intro email', details_text: 'Attached my video', outcome: 'waiting', source: 'athlete', follow_up_needed: true, created_at: '2026-11-05T10:00:00Z', deleted_at: null },
+    { id: 'a1', athlete_id: ATHLETE, athlete_college_id: 'L1', activity_date: '2026-11-05', activity_type_code: 'email', direction: 'i_contacted', coach_ids: [11, 12], summary: 'Sent intro email', details_text: 'Attached my video', outcome: 'waiting', source: 'athlete', follow_up_needed: true, created_at: '2026-11-05T10:00:00Z', deleted_at: null },
     { id: 'a2', athlete_id: ATHLETE, athlete_college_id: 'L1', activity_date: '2026-11-09', activity_type_code: 'system', summary: 'Stage: Researching to Contacted', source: 'system', created_at: '2026-11-09T10:00:00Z', deleted_at: null },
     { id: 'a3', athlete_id: ATHLETE, athlete_college_id: 'L1', activity_date: '2026-11-07', activity_type_code: 'phone_call', direction: 'they_contacted', coach_name_text: 'Coach Park', summary: 'Coordinator called', source: 'staff', created_at: '2026-11-07T10:00:00Z', deleted_at: null },
     { id: 'a4', athlete_id: ATHLETE, athlete_college_id: 'L1', activity_date: '2026-11-02', activity_type_code: 'other_note', summary: 'Removed entry', source: 'athlete', created_at: '2026-11-02T10:00:00Z', deleted_at: '2026-11-03T00:00:00Z' },
@@ -437,7 +446,7 @@ describe('College page: activity', () => {
     expect(items[0]).toHaveTextContent('Automatic')
     expect(items[1]).toHaveTextContent('Added by your coordinator')
     expect(items[1]).toHaveTextContent('Phone call · They contacted me · Coach Park')
-    expect(items[2]).toHaveTextContent('Email · I contacted them · Casey Coach · Waiting for reply')
+    expect(items[2]).toHaveTextContent('Email · I contacted them · Casey Coach, My Own Contact · Waiting for reply')
     expect(items[2]).toHaveTextContent('Attached my video')
     expect(items[2]).toHaveTextContent('Follow-up needed')
     expect(within(timeline).queryByText('Other college')).not.toBeInTheDocument()
@@ -473,23 +482,22 @@ describe('College page: activity', () => {
     expect(await within(form).findByText('Choose who made contact')).toBeInTheDocument()
     expect(writes(calls, 'activity_entry')).toHaveLength(0)
     await user.selectOptions(within(form).getByLabelText('Who made contact'), 'i_contacted')
-    await user.selectOptions(within(form).getByLabelText('Which coach'), '11')
+    await user.click(within(form).getByLabelText('My Own Contact'))
+    await user.click(within(form).getByLabelText('Casey Coach'))
     await user.click(within(form).getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(writes(calls, 'activity_entry', 'insert')).toHaveLength(1))
     expect(writes(calls, 'activity_entry', 'insert')[0].payload).toEqual({
       athlete_id: ATHLETE,
       athlete_college_id: 'L1',
       activity_date: '2026-11-10',
-      activity_time: null,
       activity_type_code: 'email',
       direction: 'i_contacted',
-      coach_id: 11,
+      coach_ids: [12, 11],
       coach_name_text: null,
       summary: 'Sent thank-you email',
       details_text: null,
       outcome: null,
       follow_up_needed: false,
-      attachment_url: null,
     })
     expect(await screen.findByRole('button', { name: 'Log activity' })).toBeInTheDocument()
   })
@@ -504,7 +512,36 @@ describe('College page: activity', () => {
     await user.type(within(form).getByLabelText('Coach name (if not listed)'), 'Coach Park')
     await user.click(within(form).getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(writes(calls, 'activity_entry', 'insert')).toHaveLength(1))
-    expect(writes(calls, 'activity_entry', 'insert')[0].payload).toMatchObject({ coach_id: null, coach_name_text: 'Coach Park', direction: null })
+    expect(writes(calls, 'activity_entry', 'insert')[0].payload).toMatchObject({ coach_ids: [], coach_name_text: 'Coach Park', direction: null })
+  })
+
+  it('lets the coach list be changed on an entry, one coach at a time', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/list/L1/activity', world())
+    const timeline = await screen.findByRole('list', { name: 'Activity' })
+    await user.click(within(within(timeline).getAllByRole('listitem')[2]).getByRole('button', { name: 'Edit' }))
+    expect(await screen.findByLabelText('Casey Coach')).toBeChecked()
+    expect(screen.getByLabelText('My Own Contact')).toBeChecked()
+    expect(screen.queryByLabelText('Coach name (if not listed)')).not.toBeInTheDocument()
+    await user.click(screen.getByLabelText('My Own Contact'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(writes(calls, 'activity_entry', 'update')).toHaveLength(1))
+    expect(writes(calls, 'activity_entry', 'update')[0].payload).toMatchObject({ coach_ids: [11], coach_name_text: null })
+  })
+
+  it('asks for a coach name only when no listed coach is chosen, and sends no name with a chosen coach', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/list/L1/activity', world())
+    const form = await openLog(user)
+    const name = within(form).getByLabelText('Coach name (if not listed)')
+    await user.type(name, 'Coach Park')
+    await user.click(within(form).getByLabelText('Casey Coach'))
+    expect(within(form).queryByLabelText('Coach name (if not listed)')).not.toBeInTheDocument()
+    await user.selectOptions(within(form).getByLabelText('What happened'), 'camp_clinic')
+    await user.type(within(form).getByLabelText('Summary'), 'Met them at camp')
+    await user.click(within(form).getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(writes(calls, 'activity_entry', 'insert')).toHaveLength(1))
+    expect(writes(calls, 'activity_entry', 'insert')[0].payload).toMatchObject({ coach_ids: [11], coach_name_text: null })
   })
 
   it('refuses a date in the future and a missing summary', async () => {
@@ -519,13 +556,35 @@ describe('College page: activity', () => {
     expect(writes(calls, 'activity_entry')).toHaveLength(0)
   })
 
-  it('refuses a link that is not http(s)', async () => {
+  it('does not offer the time of day or a link to an email or document (hidden in this phase), and never sends them', async () => {
     const user = userEvent.setup()
-    start('/list/L1/activity', world())
+    const { calls } = start('/list/L1/activity', world())
     const form = await openLog(user)
-    await user.type(within(form).getByLabelText('Link to the email or document'), 'file:///secret')
+    expect(within(form).queryByLabelText('Time')).not.toBeInTheDocument()
+    expect(within(form).queryByLabelText('Link to the email or document')).not.toBeInTheDocument()
+    await user.selectOptions(within(form).getByLabelText('What happened'), 'camp_clinic')
+    await user.type(within(form).getByLabelText('Summary'), 'Met them at camp')
     await user.click(within(form).getByRole('button', { name: 'Save' }))
-    expect(await within(form).findByText('Start the link with http:// or https://')).toBeInTheDocument()
+    await waitFor(() => expect(writes(calls, 'activity_entry', 'insert')).toHaveLength(1))
+    const sent = Object.keys(writes(calls, 'activity_entry', 'insert')[0].payload as object)
+    expect(sent).not.toContain('activity_time')
+    expect(sent).not.toContain('attachment_url')
+  })
+
+  it('leaves a saved time and link alone when an entry is edited', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/list/L1/activity', base({ activity_entry: entries.map((e) => (e.id === 'a1' ? { ...e, activity_time: '09:30:00', attachment_url: 'https://mail.example.com/1' } : e)) }))
+    const timeline = await screen.findByRole('list', { name: 'Activity' })
+    expect(timeline).not.toHaveTextContent('Open the linked email or document')
+    await user.click(within(within(timeline).getAllByRole('listitem')[2]).getByRole('button', { name: 'Edit' }))
+    const summary = await screen.findByLabelText('Summary')
+    await user.clear(summary)
+    await user.type(summary, 'Sent intro email again')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(writes(calls, 'activity_entry', 'update')).toHaveLength(1))
+    const sent = Object.keys(writes(calls, 'activity_entry', 'update')[0].payload as object)
+    expect(sent).not.toContain('activity_time')
+    expect(sent).not.toContain('attachment_url')
   })
 
   it('offers the next step after a follow-up is flagged and there is no open step', async () => {
@@ -562,7 +621,7 @@ describe('College page: activity', () => {
     await user.type(summary, 'Sent intro email and video')
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(writes(calls, 'activity_entry', 'update')).toHaveLength(1))
-    expect(writes(calls, 'activity_entry', 'update')[0].payload).toMatchObject({ summary: 'Sent intro email and video', direction: 'i_contacted', coach_id: 11 })
+    expect(writes(calls, 'activity_entry', 'update')[0].payload).toMatchObject({ summary: 'Sent intro email and video', direction: 'i_contacted', coach_ids: [11, 12] })
     expect(writes(calls, 'activity_entry', 'insert')).toHaveLength(0)
   })
 

@@ -16,17 +16,17 @@ export default function ResultCard({ row, base, search, onList }: { row: Row; ba
       <Link
         to={`${base}/${row.program_id}`}
         state={{ search }}
-        className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3 hover:border-red-900"
+        className="flex flex-col gap-1 rounded border border-line bg-surface p-3 hover:border-gold"
       >
         <span className="flex items-start justify-between gap-2">
           <span className="font-medium">{String(row.college_name)}</span>
-          {onList && <span className="shrink-0 rounded bg-red-900 px-2 py-0.5 text-xs font-medium text-white">On My List</span>}
+          {onList && <span className="shrink-0 rounded bg-gold px-2 py-0.5 text-xs font-medium text-ink">On My List</span>}
         </span>
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-muted">
           {[placeLabel(row.city, row.state), String(row.division_label ?? ''), typeof row.conference === 'string' ? row.conference : ''].filter(Boolean).join(' · ')}
         </span>
-        {facts.length > 0 && <span className="text-sm text-slate-600">{facts.join(' · ')}</span>}
-        {level && <span className="text-sm text-slate-600">{level}</span>}
+        {facts.length > 0 && <span className="text-sm text-muted">{facts.join(' · ')}</span>}
+        {level && <span className="text-sm text-muted">{level}</span>}
       </Link>
     </li>
   )

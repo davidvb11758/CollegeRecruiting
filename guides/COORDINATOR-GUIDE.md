@@ -12,6 +12,8 @@ One page for club staff (recruiting coordinators and team coaches). Use it on a 
 
 Each card shows team, class, profile %, number of colleges, last activity, and a red **N overdue** badge. Search by the start of a name; sort by most overdue, longest without activity, or least complete profile. Start your week with "Most overdue".
 
+**New notes from athletes** appear at the top of the roster until you tap **Dismiss** (dismissing is yours alone: another coordinator of the same athlete still sees it). **Reply** opens the conversation in the athlete's **Notes** tab.
+
 ## 3. Working inside an athlete's account
 
 Tap an athlete. A yellow banner says **"Editing <athlete>'s account as <you>"**: everything you change is recorded under your name, and the family sees "added by <your name>". Tabs:
@@ -23,12 +25,14 @@ Tap an athlete. A yellow banner says **"Editing <athlete>'s account as <you>"**:
 | Find | Search colleges and add them to *their* list |
 | Profile | Personal, Athletic, Academics, Highlights; each tab saves on its own |
 | Preferences | Their college preferences |
+| Notes | Send the athlete a note or question and read the whole conversation. The athlete sees your note at the top of their Home until they dismiss it. Every coordinator of the athlete can read the conversation |
 | History | Who changed what and when (filter: staff changes only) |
 
 Good practice:
 
 - Set a **next step with a due date** on every active college; that is what drives the Home page and the roster's overdue count.
-- Log calls and emails you handle for the athlete; the entry is labelled as yours.
+- Log calls and emails you handle for the athlete; the entry is labelled as yours. An entry can name several coaches (tick each one).
+- Notes are not email: nothing is sent outside the app, and an athlete only sees a note when they open the app. For anything urgent, also text or call the family.
 - Agree with the family before changing their priorities or stages; they see your changes.
 - The 30-college limit and one open step per college apply to you too; the screen explains if you hit one.
 

@@ -66,6 +66,10 @@ const tables: Record<string, Row[]> = {
   athlete_video_link: [{ id: 'v1', athlete_id: ATH, label: 'Highlights', url: 'https://video.example.com/1', sort_order: 1 }],
   staff_roster: [{ athlete_id: ATH, first_name: 'Pat', last_name: 'Player', team_name: 'Iowa Rockets 16R', graduation_year: 2029, profile_pct: 60, colleges_count: 1, last_activity_date: '2026-11-05', overdue_count: 1 }],
   staff_profile: [{ user_id: 's1', first_name: 'Kim', last_name: 'Smith' }],
+  note_thread: [
+    { note_id: 'nt1', athlete_id: ATH, athlete_name: 'Pat Player', sender: 'staff', sender_name: 'Kim Smith', kind: 'note', body: 'Please send me your new film', created_at: '2026-11-09T15:00:00Z', for_me: true, dismissed: false, mine: false },
+    { note_id: 'nt2', athlete_id: ATH, athlete_name: 'Pat Player', sender: 'athlete', sender_name: 'Pat Player', kind: 'question', body: 'Which camps should I do?', created_at: '2026-11-08T15:00:00Z', for_me: false, dismissed: false, mine: true },
+  ],
   change_history: [{ id: 1, athlete_id: ATH, table_name: 'athlete', record_id: ATH, change_type: 'updated', new_values: { jersey_number: '7' }, changed_by: 's1', changed_by_role: 'staff', changed_at: '2026-11-09T15:00:00Z' }],
 }
 
@@ -115,6 +119,7 @@ describe('accessibility: athlete screens', () => {
     ['/profile/highlights', 'Highlights'],
     ['/preferences', 'My College Preferences'],
     ['/more', 'Change password'],
+    ['/notes', 'Conversation'],
   ] as const)('%s', async (path, ready) => {
     const { container } = show(path)
     await check(container, ready)
@@ -153,6 +158,7 @@ describe('accessibility: staff screens', () => {
     ['/staff', 'Pat Player'],
     ['/staff/athlete/athlete-1/home', /Editing Pat Player/],
     ['/staff/athlete/athlete-1/history', 'Changed: Personal details'],
+    ['/staff/athlete/athlete-1/notes', 'Conversation'],
     ['/staff/find/1', 'Staff tools'],
   ] as const)('%s', async (path, ready) => {
     const { container } = show(path, staff)

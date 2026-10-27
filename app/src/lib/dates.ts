@@ -6,6 +6,9 @@ export function clubToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: CLUB_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
 }
 
+/** The club-day (YYYY-MM-DD) on which a timestamp such as "2026-11-03T02:15:00Z" happened. */
+export const clubDateOf = (timestamp: string): string => clubToday(new Date(timestamp))
+
 const toUtc = (date: string) => {
   const [y, m, d] = date.split('-').map(Number)
   return Date.UTC(y, m - 1, d)

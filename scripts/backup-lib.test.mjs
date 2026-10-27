@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { TABLES, exportQuery, matchAccounts, packRequests, remapRows, restoreStatements, sequenceStatements } from './lib/backup-lib.mjs'
+import { TABLES, exportQuery, matchAccounts, packRequests, remapRows, restoreStatements, sequenceStatements, upgradeLegacyRows } from './lib/backup-lib.mjs'
 
 const table = (name) => TABLES.find((t) => t.name === name)
 
@@ -15,6 +15,9 @@ test('the restore order puts every parent before its children', () => {
   before('college_coach', 'athlete_college') // the main coach of a list entry
   before('athlete_college', 'activity_entry')
   before('athlete_college', 'next_step')
+  before('athlete', 'athlete_note')
+  before('athlete_note', 'athlete_note_dismissal')
+  before('app_user', 'athlete_note_dismissal')
 })
 
 test('every table has a primary key and the identity tables are the four that hand out numbers', () => {
@@ -120,4 +123,20 @@ test('database replies are read in both shapes the Supabase CLI prints', async (
   assert.deepEqual(queryRows('[]'), [])
   assert.throws(() => queryRows('┌───┐\n│ n │\n└───┘'), /no JSON in the reply/)
   assert.throws(() => queryRows(''), /nothing/)
+})
+
+test('the author of a note is translated like any other login, and a missing one stops the restore', () => {
+  const map = new Map([['old', 'new']])
+  assert.equal(remapRows('athlete_note', [{ id: 'n', athlete_id: 'a', sender_user_id: 'old' }], map)[0].sender_user_id, 'new')
+  assert.throws(() => remapRows('athlete_note', [{ id: 'n', sender_user_id: 'stranger' }], map), /not in the new project/)
+  assert.throws(() => remapRows('athlete_note_dismissal', [{ note_id: 'n', user_id: 'stranger' }], map), /not in the new project/)
+})
+
+test('an older backup with one coach per entry is upgraded to a list of coaches', () => {
+  const rows = [{ id: 'a', coach_id: 11, summary: 's' }, { id: 'b', coach_id: null }, { id: 'c', coach_ids: [1, 2] }]
+  const up = upgradeLegacyRows('activity_entry', rows)
+  assert.deepEqual(up.map((r) => r.coach_ids), [[11], [], [1, 2]])
+  assert.ok(up.every((r) => !('coach_id' in r)))
+  assert.equal(rows[0].coach_id, 11, 'the input is not changed')
+  assert.equal(upgradeLegacyRows('next_step', rows), rows, 'other tables are left alone')
 })

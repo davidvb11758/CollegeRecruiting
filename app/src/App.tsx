@@ -15,6 +15,7 @@ import ListHub from './pages/ListHub'
 import MyList from './pages/MyList'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
+import Notes from './pages/Notes'
 import Preferences from './pages/Preferences'
 import Profile from './pages/Profile'
 import ResetPassword from './pages/ResetPassword'
@@ -58,6 +59,7 @@ export default function App() {
                   <Route path="/find/:programId" element={<CollegeDetail />} />
                   <Route path="/profile/*" element={<Profile />} />
                   <Route path="/preferences" element={<Preferences />} />
+                  <Route path="/notes" element={<Notes />} />
                   <Route path="/more" element={<Account />} />
                 </Route>
               </Route>

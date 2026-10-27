@@ -50,7 +50,7 @@ export default function NextStepForm({
   // The pick-list must exist before the form does, or a saved type would not show.
   if (types.isPending) {
     return (
-      <p role="status" className="text-slate-600">
+      <p role="status" className="text-muted">
         Loading…
       </p>
     )

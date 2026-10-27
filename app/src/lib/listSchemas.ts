@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { clubToday } from './dates'
-import { maxText, optionalEmail, optionalUrl } from './forms'
+import { maxText, optionalEmail } from './forms'
 
 const optionalText = (max = 120) => z.string().trim().max(max, `Use ${max} characters or fewer`)
 
@@ -17,7 +17,10 @@ export const overviewSchema = z
   })
   .refine((d) => d.stage !== 'closed' || d.closedReason !== '', { path: ['closedReason'], message: 'Choose why this college is closed' })
 
-/** Logging an activity. Direction is checked in the form because it depends on the type. */
+/**
+ * Logging an activity. Direction is checked in the form because it depends on the type.
+ * Hidden for now: the time of day and the link to an email or document (the columns stay in the database).
+ */
 export const activitySchema = z.object({
   activityDate: z
     .string()
@@ -25,16 +28,14 @@ export const activitySchema = z.object({
     .refine((v) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)), 'Enter a valid date')
     .refine((v) => v <= clubToday(), 'The date cannot be in the future')
     .refine((v) => v >= '2020-01-01', 'The date is too far in the past'),
-  activityTime: z.string(),
   activityTypeCode: z.string().min(1, 'Choose what happened'),
   direction: z.enum(['', 'i_contacted', 'they_contacted', 'not_applicable']),
-  coachId: z.string(),
+  coachIds: z.array(z.string()).max(10, 'Choose up to 10 coaches'),
   coachNameText: optionalText(80),
   summary: z.string().trim().min(1, 'Write a one-line summary').max(200, 'Use 200 characters or fewer'),
   detailsText: maxText('Details', 4000),
   outcome: z.enum(['', 'positive', 'neutral', 'negative', 'waiting']),
   followUpNeeded: z.boolean(),
-  attachmentUrl: optionalUrl,
 })
 
 export const nextStepSchema = z.object({

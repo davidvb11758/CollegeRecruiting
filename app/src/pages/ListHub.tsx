@@ -39,7 +39,7 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
   const [flow, setFlow] = useState<Flow>(null)
 
   const back = (
-    <Link to={base} className="flex min-h-11 items-center text-red-900 underline">
+    <Link to={base} className="flex min-h-11 items-center text-gold underline">
       ← My List
     </Link>
   )
@@ -47,7 +47,7 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
     return (
       <main className="flex flex-col gap-3 px-4 py-6">
         {back}
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       </main>
@@ -100,27 +100,27 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
       {back}
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{String(summary.college_name)}</h1>
-        <p className="text-slate-600">
+        <p className="text-muted">
           {[placeLabel(summary.city, summary.state), DIVISION_SHORT[String(summary.division_code)] ?? ''].filter(Boolean).join(' · ')}
         </p>
         <p className="flex flex-wrap gap-2 text-sm">
-          <span className="rounded bg-slate-200 px-2 py-0.5">Priority {priorityLabel(entry.priority)}</span>
-          <span className="rounded bg-slate-200 px-2 py-0.5">{stageLabel(entry.stage)}</span>
+          <span className="rounded bg-line px-2 py-0.5">Priority {priorityLabel(entry.priority)}</span>
+          <span className="rounded bg-line px-2 py-0.5">{stageLabel(entry.stage)}</span>
         </p>
         {mainCoach && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             Main contact: {String(mainCoach.full_name)}
             {typeof mainCoach.email === 'string' && mainCoach.email && (
               <>
                 {' · '}
-                <a href={`mailto:${mainCoach.email}`} className="text-red-900 underline">
+                <a href={`mailto:${mainCoach.email}`} className="text-gold underline">
                   {mainCoach.email}
                 </a>
               </>
             )}
           </p>
         )}
-        <Link to={`${prefix}/find/${String(entry.program_id)}`} className="flex min-h-11 items-center text-sm text-red-900 underline">
+        <Link to={`${prefix}/find/${String(entry.program_id)}`} className="flex min-h-11 items-center text-sm text-gold underline">
           View college details
         </Link>
       </header>
@@ -136,9 +136,9 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
       )}
 
       {flow?.kind === 'afterDone' && (
-        <section aria-label="Log it" className="flex flex-col gap-2 rounded border border-slate-300 bg-white p-3">
+        <section aria-label="Log it" className="flex flex-col gap-2 rounded border border-line bg-surface p-3">
           <p className="font-medium">Marked done. Log it?</p>
-          <p className="text-sm text-slate-600">A log entry keeps the full story of this college.</p>
+          <p className="text-sm text-muted">A log entry keeps the full story of this college.</p>
           <Button type="button" onClick={() => setFlow({ kind: 'log', prefill: logFromStep(flow.step), fromDone: true })}>
             Log it
           </Button>
@@ -148,7 +148,7 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
         </section>
       )}
       {flow?.kind === 'afterLog' && !openStep && (
-        <section aria-label="Set the next step" className="flex flex-col gap-2 rounded border border-slate-300 bg-white p-3">
+        <section aria-label="Set the next step" className="flex flex-col gap-2 rounded border border-line bg-surface p-3">
           <p className="font-medium">What is the next step?</p>
           <Button type="button" onClick={() => setFlow({ kind: 'step' })}>
             Set next step
@@ -171,13 +171,13 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
         />
       )}
 
-      <nav aria-label="College sections" className="flex border-b border-slate-300">
+      <nav aria-label="College sections" className="flex border-b border-line">
         {TABS.map((t) => (
           <NavLink
             key={t.to}
             to={`${base}/${listId}/${t.to}`}
             className={({ isActive }) =>
-              `flex min-h-11 flex-1 items-center justify-center text-sm ${isActive ? 'border-b-2 border-red-900 font-semibold text-red-900' : 'text-slate-600'}`
+              `flex min-h-11 flex-1 items-center justify-center text-sm ${isActive ? 'border-b-2 border-gold font-semibold text-gold' : 'text-muted'}`
             }
           >
             {t.label}
@@ -185,7 +185,7 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
         ))}
       </nav>
       <Routes>
-        <Route index element={<Navigate to="overview" replace />} />
+        <Route index element={<Navigate to="activity" replace />} />
         <Route path="overview" element={<OverviewTab listId={listId} hub={hub.data} />} />
         <Route
           path="activity"

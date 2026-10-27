@@ -10,6 +10,7 @@ import { CollegeDetailScreen } from './CollegeDetail'
 import { FindScreen } from './Find'
 import { HomeScreen } from './Home'
 import { ListHubScreen } from './ListHub'
+import { NotesScreen } from './Notes'
 import { MyListScreen } from './MyList'
 import { PreferencesScreen } from './Preferences'
 import { ProfileScreen } from './Profile'
@@ -20,6 +21,7 @@ const TABS = [
   { to: 'find', label: 'Find' },
   { to: 'profile', label: 'Profile' },
   { to: 'preferences', label: 'Preferences' },
+  { to: 'notes', label: 'Notes' },
   { to: 'history', label: 'History' },
 ]
 
@@ -32,7 +34,7 @@ function HistoryScreen({ athleteId }: { athleteId: string }) {
     <main className="flex flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-semibold">History</h1>
       {history.isPending ? (
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       ) : history.isError ? (
@@ -47,18 +49,18 @@ function HistoryScreen({ athleteId }: { athleteId: string }) {
             Show only changes made by staff
           </label>
           {items.length === 0 ? (
-            <p className="text-sm text-slate-600">{staffOnly ? 'Staff have not changed anything yet.' : 'No changes recorded yet.'}</p>
+            <p className="text-sm text-muted">{staffOnly ? 'Staff have not changed anything yet.' : 'No changes recorded yet.'}</p>
           ) : (
             <ul aria-label="Changes" className="flex flex-col gap-2">
               {items.map((i) => (
-                <li key={i.id} className="flex flex-col rounded border border-slate-300 bg-white p-3">
-                  <span className="text-sm text-slate-600">
+                <li key={i.id} className="flex flex-col rounded border border-line bg-surface p-3">
+                  <span className="text-sm text-muted">
                     {formatDate(i.changedAt.slice(0, 10))} · {i.who}
                   </span>
                   <span className="font-medium">
                     {i.kind}: {i.area}
                   </span>
-                  {i.fields.length > 0 && <span className="text-sm text-slate-600">{i.fields.slice(0, 8).join(', ')}</span>}
+                  {i.fields.length > 0 && <span className="text-sm text-muted">{i.fields.slice(0, 8).join(', ')}</span>}
                 </li>
               ))}
             </ul>
@@ -80,7 +82,7 @@ export default function StaffAthlete() {
   const me = state.status === 'signedIn' ? state.account.displayName : ''
 
   const back = (
-    <Link to="/staff" className="flex min-h-11 items-center text-red-900 underline">
+    <Link to="/staff" className="flex min-h-11 items-center text-gold underline">
       ← Roster
     </Link>
   )
@@ -88,7 +90,7 @@ export default function StaffAthlete() {
     return (
       <main className="px-4 py-6">
         {back}
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       </main>
@@ -110,7 +112,7 @@ export default function StaffAthlete() {
   return (
     <ScopeContext.Provider value={scope}>
       <div className="mx-auto max-w-3xl">
-        <div role="status" aria-label="Who you are editing" className="mx-4 mt-3 rounded border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
+        <div role="status" aria-label="Who you are editing" className="mx-4 mt-3 rounded border border-gold bg-gold/10 p-3 text-sm text-fg">
           <p className="font-medium">
             Editing {name}&apos;s account{me ? ` as ${me}` : ''}
           </p>
@@ -119,13 +121,13 @@ export default function StaffAthlete() {
           </p>
         </div>
         <div className="px-4">{back}</div>
-        <nav aria-label="Athlete sections" className="mx-4 flex overflow-x-auto border-b border-slate-300">
+        <nav aria-label="Athlete sections" className="mx-4 flex overflow-x-auto border-b border-line">
           {TABS.map((t) => (
             <NavLink
               key={t.to}
               to={`${prefix}/${t.to}`}
               className={({ isActive }) =>
-                `flex min-h-11 flex-1 items-center justify-center whitespace-nowrap px-2 text-sm ${isActive ? 'border-b-2 border-red-900 font-semibold text-red-900' : 'text-slate-600'}`
+                `flex min-h-11 flex-1 items-center justify-center whitespace-nowrap px-2 text-sm ${isActive ? 'border-b-2 border-gold font-semibold text-gold' : 'text-muted'}`
               }
             >
               {t.label}
@@ -141,6 +143,7 @@ export default function StaffAthlete() {
           <Route path="find/:programId" element={<CollegeDetailScreen base={`${prefix}/find`} athleteId={athleteId} />} />
           <Route path="profile/*" element={<ProfileScreen athleteId={athleteId} base={`${prefix}/profile`} />} />
           <Route path="preferences" element={<PreferencesScreen athleteId={athleteId} />} />
+          <Route path="notes" element={<NotesScreen athleteId={athleteId} />} />
           <Route path="history" element={<HistoryScreen athleteId={athleteId} />} />
         </Routes>
       </div>

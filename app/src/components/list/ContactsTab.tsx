@@ -26,7 +26,7 @@ function ContactForm({ athleteId, programId, coach, onDone }: { athleteId: strin
     },
   })
   return (
-    <form noValidate aria-label={coach ? 'Edit contact' : 'Add a contact'} onSubmit={handleSubmit((v) => write.run(v).then(onDone, () => undefined))} className="flex flex-col gap-3 rounded border border-slate-300 bg-white p-3">
+    <form noValidate aria-label={coach ? 'Edit contact' : 'Add a contact'} onSubmit={handleSubmit((v) => write.run(v).then(onDone, () => undefined))} className="flex flex-col gap-3 rounded border border-line bg-surface p-3">
       <h3 className="font-semibold">{coach ? 'Change this contact' : 'Add a contact'}</h3>
       <Field label="Name" error={errors.fullName?.message} {...register('fullName')} />
       <SelectField label="Role" options={COACH_TITLE_OPTIONS} error={errors.title?.message} {...register('title')} />
@@ -55,7 +55,7 @@ export default function ContactsTab({ listId, athleteId, hub }: { listId: string
 
   return (
     <div className="flex flex-col gap-3">
-      {hub.coaches.length === 0 && <p className="text-sm text-slate-600">No coach contacts are listed for this program. Add one you have found.</p>}
+      {hub.coaches.length === 0 && <p className="text-sm text-muted">No coach contacts are listed for this program. Add one you have found.</p>}
       {(main.error || remove.error) && <Message kind="error">{main.error ?? remove.error}</Message>}
       <ul aria-label="Coaches" className="flex flex-col gap-2">
         {hub.coaches.map((c) => {
@@ -69,7 +69,7 @@ export default function ContactsTab({ listId, athleteId, hub }: { listId: string
             <CoachCard
               key={String(c.id)}
               coach={c}
-              badge={isMain ? <span className="w-fit rounded bg-red-900 px-2 py-0.5 text-xs font-medium text-white">Main contact</span> : undefined}
+              badge={isMain ? <span className="w-fit rounded bg-gold px-2 py-0.5 text-xs font-medium text-ink">Main contact</span> : undefined}
               actions={
                 <div className="flex flex-wrap gap-2">
                   {isMain ? (

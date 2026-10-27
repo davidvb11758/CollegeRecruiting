@@ -67,11 +67,11 @@ export function FindScreen({ base, athleteId }: { base: string; athleteId: strin
           type="search"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="min-h-11 rounded border border-slate-400 bg-white px-3 text-base"
+          className="min-h-11 rounded border border-edge bg-surface px-3 text-base"
         />
       </div>
 
-      <details className="rounded border border-slate-300 bg-white p-3" open={active > 0 || undefined}>
+      <details className="rounded border border-line bg-surface p-3" open={active > 0 || undefined}>
         <summary className="min-h-11 cursor-pointer py-2 font-medium">Filters{active > 0 ? ` (${active})` : ''}</summary>
         <div className="flex flex-col gap-4 pt-2">
           {preset && (
@@ -82,7 +82,7 @@ export function FindScreen({ base, athleteId }: { base: string; athleteId: strin
           {lookups.data ? (
             <FilterPanel filters={filters} onChange={update} lookups={lookups.data} conferences={conferences.data ?? []} />
           ) : (
-            <p role="status" className="text-slate-600">
+            <p role="status" className="text-muted">
               Loading filters…
             </p>
           )}
@@ -106,15 +106,15 @@ export function FindScreen({ base, athleteId }: { base: string; athleteId: strin
           <Button onClick={() => void search.refetch()}>Try again</Button>
         </div>
       ) : search.isPending ? (
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Searching…
         </p>
       ) : (
         <>
-          <p role="status" className="text-sm text-slate-600">
+          <p role="status" className="text-sm text-muted">
             {count === 0 ? 'No programs match.' : `${count.toLocaleString('en-US')} program${count === 1 ? '' : 's'}`}
           </p>
-          {count === 0 && active + (filters.q ? 1 : 0) > 0 && <p className="text-sm text-slate-600">Try removing a filter or shortening the name.</p>}
+          {count === 0 && active + (filters.q ? 1 : 0) > 0 && <p className="text-sm text-muted">Try removing a filter or shortening the name.</p>}
           <ul aria-label="Results" className="flex flex-col gap-2">
             {rows.map((row) => (
               <ResultCard key={String(row.program_id)} row={row} base={base} search={location.search} onList={onList.has(Number(row.program_id))} />

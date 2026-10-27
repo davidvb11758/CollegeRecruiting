@@ -31,7 +31,7 @@
 ## Quality
 
 - [x] Accessibility baseline: 28 automated checks (labels, roles, landmarks, ids, form errors) over every main screen for families and staff. Re-run: `cd app && npm test`.
-- [x] Colour contrast measured: every text and background pair in use passes WCAG AA (lowest 6.1:1; links and buttons 10:1).
+- [x] Colour contrast measured for the black-and-gold theme (2026-10-27): every text and background pair passes WCAG AA (lowest text pair 7.4:1, red error text on charcoal; body text 17:1, gold 13 to 15:1, black on gold buttons 15:1); input outlines are 3.5:1. Card borders (1.5:1) are decoration only.
 - [x] Layout has no fixed widths; the page is built for 360px; main buttons and inputs are 44px tall. The built site is split so only staff download the staff screens.
 - [ ] Hand pass on a real phone (iPhone Safari and Android Chrome) and keyboard pass on a computer, using the steps at the end of the runbook. Note anything found.
 - [ ] Dry run (week 0): two or three friendly families try sign-up to a list of five colleges and a logged activity on their own phones, without help, using the task table in `PILOT-PLAYBOOK.md`. Blockers fixed (test first), stopwatch task near 10 minutes.

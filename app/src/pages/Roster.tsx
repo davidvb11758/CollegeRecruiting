@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { NoteInbox } from '../components/notes/NoteParts'
 import { Button, Message, SelectField } from '../components/ui'
 import { clubToday, diffDays, formatDate } from '../lib/dates'
 import type { Row } from '../lib/dbClient'
+import { useInbox } from '../lib/noteHooks'
 import { matchesName, ROSTER_SORTS, sortRoster, type RosterSort } from '../lib/rosterSort'
 import { staffAthletePrefix } from '../lib/scope'
 import { useRoster } from '../lib/staffHooks'
@@ -22,22 +24,22 @@ function AthleteCard({ row }: { row: Row }) {
     <li>
       <Link
         to={staffAthletePrefix(text(row.athlete_id))}
-        className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3 hover:border-red-900"
+        className="flex flex-col gap-1 rounded border border-line bg-surface p-3 hover:border-gold"
       >
         <span className="font-medium">
           {text(row.first_name)} {text(row.last_name)}
         </span>
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-muted">
           {text(row.team_name)} · Class of {text(row.graduation_year)}
         </span>
         <span className="flex flex-wrap gap-2 text-sm">
-          <span className="rounded bg-slate-200 px-2 py-0.5">Profile {pct}%</span>
-          <span className="rounded bg-slate-200 px-2 py-0.5">
+          <span className="rounded bg-line px-2 py-0.5">Profile {pct}%</span>
+          <span className="rounded bg-line px-2 py-0.5">
             {Number(row.colleges_count)} college{Number(row.colleges_count) === 1 ? '' : 's'}
           </span>
-          {overdue > 0 && <span className="rounded bg-red-900 px-2 py-0.5 text-white">{overdue} overdue</span>}
+          {overdue > 0 && <span className="rounded bg-danger px-2 py-0.5 font-medium text-ink">{overdue} overdue</span>}
         </span>
-        <span className="text-sm text-slate-600">{lastActivityText(row.last_activity_date)}</span>
+        <span className="text-sm text-muted">{lastActivityText(row.last_activity_date)}</span>
       </Link>
     </li>
   )
@@ -46,6 +48,7 @@ function AthleteCard({ row }: { row: Row }) {
 /** S1: the coordinator's athletes. Row-level security decides who is on it; the page only searches and sorts. */
 export default function Roster() {
   const roster = useRoster()
+  const inbox = useInbox()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const sortParam = params.get('sort') ?? ''
@@ -65,8 +68,14 @@ export default function Roster() {
   return (
     <main className="flex flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-semibold">Roster</h1>
+      <NoteInbox
+        notes={inbox.data ?? []}
+        label="New notes from athletes"
+        whoOf={(n) => n.athleteName}
+        replyFor={(n) => `${staffAthletePrefix(n.athleteId)}/notes`}
+      />
       {roster.isPending ? (
-        <p role="status" className="text-slate-600">
+        <p role="status" className="text-muted">
           Loading…
         </p>
       ) : roster.isError ? (
@@ -75,10 +84,10 @@ export default function Roster() {
           <Button onClick={() => void roster.refetch()}>Try again</Button>
         </div>
       ) : all.length === 0 ? (
-        <p className="text-slate-600">No athletes are assigned to you yet. Ask the administrator to assign athletes to you.</p>
+        <p className="text-muted">No athletes are assigned to you yet. Ask the administrator to assign athletes to you.</p>
       ) : (
         <>
-          <p role="status" className="text-sm text-slate-600">
+          <p role="status" className="text-sm text-muted">
             {all.length} athlete{all.length === 1 ? '' : 's'}
             {overdueTotal > 0 ? ` · ${overdueTotal} overdue next step${overdueTotal === 1 ? '' : 's'}` : ''}
           </p>
@@ -92,13 +101,13 @@ export default function Roster() {
                 type="search"
                 value={q}
                 onChange={(e) => set('q', e.target.value)}
-                className="min-h-11 rounded border border-slate-400 bg-white px-3 text-base"
+                className="min-h-11 rounded border border-edge bg-surface px-3 text-base"
               />
             </div>
             <SelectField label="Sort by" options={[...ROSTER_SORTS]} value={sort} onChange={(e) => set('sort', e.target.value === 'name' ? '' : e.target.value)} />
           </div>
           {shown.length === 0 ? (
-            <p className="text-sm text-slate-600">No athlete matches that name.</p>
+            <p className="text-sm text-muted">No athlete matches that name.</p>
           ) : (
             <ul aria-label="Athletes" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {shown.map((r) => (

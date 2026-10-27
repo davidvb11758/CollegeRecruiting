@@ -7,7 +7,7 @@ export default function Completeness({ profile }: { profile: ProfileBundle }) {
     <div className="flex flex-col gap-1">
       <p className="text-sm font-medium">
         Profile {pct}% complete
-        {profile.completeness && <span className="font-normal text-slate-600"> ({profile.completeness.filled} of {profile.completeness.total} items)</span>}
+        {profile.completeness && <span className="font-normal text-muted"> ({profile.completeness.filled} of {profile.completeness.total} items)</span>}
       </p>
       <div
         role="progressbar"
@@ -15,9 +15,9 @@ export default function Completeness({ profile }: { profile: ProfileBundle }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={pct}
-        className="h-2 w-full overflow-hidden rounded bg-slate-200"
+        className="h-2 w-full overflow-hidden rounded bg-line"
       >
-        <div className="h-full bg-red-900" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )

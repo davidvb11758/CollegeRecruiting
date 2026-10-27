@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           </Button>
         </form>
       )}
-      <Link to="/sign-in" className="text-sm text-red-900 underline">
+      <Link to="/sign-in" className="text-sm text-gold underline">
         Back to sign in
       </Link>
     </AuthPage>

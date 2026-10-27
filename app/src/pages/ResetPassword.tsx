@@ -13,7 +13,7 @@ export default function ResetPassword() {
     return (
       <AuthPage title="Reset your password">
         <Message kind="error">This reset link has expired or was already used. Request a new one.</Message>
-        <Link to="/forgot-password" className="text-red-900 underline">
+        <Link to="/forgot-password" className="text-gold underline">
           Send a new link
         </Link>
       </AuthPage>

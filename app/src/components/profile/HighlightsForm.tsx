@@ -11,10 +11,7 @@ function defaults(profile: ProfileBundle): HighlightsValues {
   return {
     videos: profile.videos.map((v) => ({ id: String(v.id), label: str(v.label), url: str(v.url) })),
     instagramHandle: str(a.instagram_handle),
-    xHandle: str(a.x_handle),
     tiktokHandle: str(a.tiktok_handle),
-    externalProfileUrl: str(a.external_profile_url),
-    gameFilmUrl: str(a.game_film_url),
   }
 }
 
@@ -37,9 +34,9 @@ export default function HighlightsForm({ athleteId, profile }: { athleteId: stri
       error={section.error}
     >
       <h2 className="text-lg font-semibold">Highlight videos</h2>
-      <p className="text-sm text-slate-600">Add up to 3 links, for example YouTube or Hudl.</p>
+      <p className="text-sm text-muted">Add up to 3 links, for example YouTube or Hudl.</p>
       {fields.map((field, index) => (
-        <fieldset key={field.id} className="flex flex-col gap-3 rounded border border-slate-300 bg-white p-3">
+        <fieldset key={field.id} className="flex flex-col gap-3 rounded border border-line bg-surface p-3">
           <legend className="px-1 text-sm font-medium">Video {index + 1}</legend>
           <input type="hidden" {...register(`videos.${index}.id`)} />
           <Field label="Title" error={errors.videos?.[index]?.label?.message} {...register(`videos.${index}.label`)} />
@@ -49,7 +46,7 @@ export default function HighlightsForm({ athleteId, profile }: { athleteId: stri
           </SecondaryButton>
         </fieldset>
       ))}
-      {errors.videos?.root && <p className="text-sm text-red-700">{errors.videos.root.message}</p>}
+      {errors.videos?.root && <p className="text-sm text-danger">{errors.videos.root.message}</p>}
       {fields.length < 3 && (
         <OutlineButton type="button" onClick={() => append({ id: '', label: '', url: '' })}>
           Add a video link
@@ -60,10 +57,7 @@ export default function HighlightsForm({ athleteId, profile }: { athleteId: stri
       {profile.athletic ? (
         <>
           <Field label="Instagram" hint="Your handle, for example rocketsvb16." error={errors.instagramHandle?.message} {...register('instagramHandle')} />
-          <Field label="X (Twitter)" error={errors.xHandle?.message} {...register('xHandle')} />
           <Field label="TikTok" error={errors.tiktokHandle?.message} {...register('tiktokHandle')} />
-          <Field label="Recruiting profile link" type="url" inputMode="url" error={errors.externalProfileUrl?.message} {...register('externalProfileUrl')} />
-          <Field label="Game film link" type="url" inputMode="url" error={errors.gameFilmUrl?.message} {...register('gameFilmUrl')} />
         </>
       ) : (
         <Message kind="info">Fill in and save the Athletic tab first (main position). Then you can add social and profile links here.</Message>

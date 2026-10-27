@@ -31,16 +31,18 @@ export const TABLES = [
   { name: 'athlete_college', pk: ['id'] },
   { name: 'activity_entry', pk: ['id'] },
   { name: 'next_step', pk: ['id'] },
+  { name: 'athlete_note', pk: ['id'] },
+  { name: 'athlete_note_dismissal', pk: ['note_id', 'user_id'] },
   { name: 'change_history', pk: ['id'], identity: true },
 ]
 
 /** Columns that hold a login's id. A restore into a new project must translate these to the new ids. */
 export const USER_COLUMNS = [
-  'user_id', 'staff_user_id', 'created_by', 'updated_by', 'assigned_by', 'entered_by', 'deleted_by', 'completed_by', 'verified_by', 'changed_by',
+  'user_id', 'staff_user_id', 'created_by', 'updated_by', 'assigned_by', 'entered_by', 'deleted_by', 'completed_by', 'verified_by', 'changed_by', 'sender_user_id',
 ]
 
 /** Columns that must not be empty, so a login that cannot be matched stops the restore instead of losing the row. */
-const REQUIRED_USER_COLUMNS = new Set(['user_id', 'staff_user_id'])
+const REQUIRED_USER_COLUMNS = new Set(['user_id', 'staff_user_id', 'sender_user_id'])
 
 const q = (name) => `"${name.replaceAll('"', '""')}"`
 
@@ -82,6 +84,19 @@ export function remapRows(tableName, rows, map) {
       else out[col] = null
     }
     return out
+  })
+}
+
+/**
+ * Brings rows from an older backup up to today's table shapes. An activity entry used to name one coach (coach_id);
+ * it now names a list (coach_ids). Returns new rows; the input is not changed.
+ */
+export function upgradeLegacyRows(tableName, rows) {
+  if (tableName !== 'activity_entry') return rows
+  return rows.map((row) => {
+    if ('coach_ids' in row || !('coach_id' in row)) return row
+    const { coach_id: coachId, ...rest } = row
+    return { ...rest, coach_ids: coachId == null ? [] : [coachId] }
   })
 }
 

@@ -4,7 +4,7 @@ import { useId, type ComponentProps, type ReactNode } from 'react'
 export function AuthPage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-8">
-      <p className="text-sm font-medium text-red-900">Rockets College Recruiting</p>
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Rockets College Recruiting</p>
       <h1 className="text-2xl font-semibold">{title}</h1>
       {children}
     </main>
@@ -25,16 +25,16 @@ export function Field({ label, error, hint, ...input }: FieldProps) {
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className="min-h-11 rounded border border-slate-400 bg-white px-3 text-base"
+        className="min-h-11 rounded border border-edge bg-surface px-3 text-base"
         {...input}
       />
       {hint && (
-        <p id={`${id}-hint`} className="text-sm text-slate-600">
+        <p id={`${id}-hint`} className="text-sm text-muted">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-sm text-red-700">
+        <p id={`${id}-error`} className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -60,7 +60,7 @@ export function CheckboxField({ label, error, ...input }: Omit<ComponentProps<'i
         </label>
       </div>
       {error && (
-        <p id={`${id}-error`} className="text-sm text-red-700">
+        <p id={`${id}-error`} className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -71,7 +71,7 @@ export function CheckboxField({ label, error, ...input }: Omit<ComponentProps<'i
 export function Button({ className = '', ...props }: ComponentProps<'button'>) {
   return (
     <button
-      className={`min-h-11 rounded bg-red-900 px-4 font-medium text-white disabled:opacity-60 ${className}`}
+      className={`min-h-11 rounded bg-gold px-4 font-medium text-ink disabled:opacity-60 ${className}`}
       {...props}
     />
   )
@@ -80,7 +80,7 @@ export function Button({ className = '', ...props }: ComponentProps<'button'>) {
 export function SecondaryButton({ className = '', ...props }: ComponentProps<'button'>) {
   return (
     <button
-      className={`min-h-11 rounded border border-slate-400 bg-white px-4 font-medium ${className}`}
+      className={`min-h-11 rounded border border-gold bg-transparent px-4 font-medium text-gold ${className}`}
       {...props}
     />
   )
@@ -89,7 +89,7 @@ export function SecondaryButton({ className = '', ...props }: ComponentProps<'bu
 export function OutlineButton({ className = '', ...props }: ComponentProps<'button'>) {
   return (
     <button
-      className={`min-h-11 rounded border border-red-900 bg-white px-4 font-medium text-red-900 ${className}`}
+      className={`min-h-11 rounded border border-gold bg-transparent px-4 font-medium text-gold ${className}`}
       {...props}
     />
   )
@@ -98,11 +98,11 @@ export function OutlineButton({ className = '', ...props }: ComponentProps<'butt
 /** A message the person must notice. "error" is announced at once; "info" is a polite status. */
 export function Message({ kind, children }: { kind: 'error' | 'info'; children: ReactNode }) {
   return kind === 'error' ? (
-    <p role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+    <p role="alert" className="rounded border border-danger bg-danger/10 p-3 text-sm text-danger">
       {children}
     </p>
   ) : (
-    <p role="status" className="rounded border border-slate-300 bg-white p-3 text-sm text-slate-700">
+    <p role="status" className="rounded border border-line bg-surface p-3 text-sm text-fg">
       {children}
     </p>
   )
@@ -111,7 +111,7 @@ export function Message({ kind, children }: { kind: 'error' | 'info'; children: 
 export function Splash({ children = 'Loading…' }: { children?: ReactNode }) {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
-      <p role="status" className="text-slate-600">
+      <p role="status" className="text-muted">
         {children}
       </p>
     </main>
@@ -136,7 +136,7 @@ export function SelectField({ label, options, placeholder, error, ...select }: S
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className="min-h-11 rounded border border-slate-400 bg-white px-2 text-base"
+        className="min-h-11 rounded border border-edge bg-surface px-2 text-base"
         {...select}
       >
         {placeholder !== undefined && <option value="">{placeholder}</option>}
@@ -147,7 +147,7 @@ export function SelectField({ label, options, placeholder, error, ...select }: S
         ))}
       </select>
       {error && (
-        <p id={`${id}-error`} className="text-sm text-red-700">
+        <p id={`${id}-error`} className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -167,12 +167,12 @@ export function TextAreaField({ label, error, hint, ...area }: ComponentProps<'t
         rows={4}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className="rounded border border-slate-400 bg-white px-3 py-2 text-base"
+        className="rounded border border-edge bg-surface px-3 py-2 text-base"
         {...area}
       />
-      {hint && <p className="text-sm text-slate-600">{hint}</p>}
+      {hint && <p className="text-sm text-muted">{hint}</p>}
       {error && (
-        <p id={`${id}-error`} className="text-sm text-red-700">
+        <p id={`${id}-error`} className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -196,7 +196,7 @@ export function CheckboxGroup({
   return (
     <fieldset className="flex flex-col gap-1">
       <legend className="text-sm font-medium">{legend}</legend>
-      {hint && <p className="text-sm text-slate-600">{hint}</p>}
+      {hint && <p className="text-sm text-muted">{hint}</p>}
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {options.map((o) => (
           <label key={o.value} className="flex min-h-11 items-center gap-2 text-sm">
@@ -205,7 +205,7 @@ export function CheckboxGroup({
           </label>
         ))}
       </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
     </fieldset>
   )
 }

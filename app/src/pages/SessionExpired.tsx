@@ -6,8 +6,8 @@ export default function SessionExpired() {
   const { clearNotice } = useAuth()
   return (
     <AuthPage title="You have been signed out">
-      <p className="text-slate-600">Your session ended. Sign in again to continue.</p>
-      <Link to="/sign-in" onClick={clearNotice} className="min-h-11 rounded bg-red-900 px-4 py-2.5 text-center font-medium text-white">
+      <p className="text-muted">Your session ended. Sign in again to continue.</p>
+      <Link to="/sign-in" onClick={clearNotice} className="min-h-11 rounded bg-gold px-4 py-2.5 text-center font-medium text-ink">
         Sign in
       </Link>
     </AuthPage>

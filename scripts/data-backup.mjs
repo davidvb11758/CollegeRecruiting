@@ -30,6 +30,7 @@ import {
   scratchDropSql,
   sequenceStatements,
   tidySeededRows,
+  upgradeLegacyRows,
   triggersOff,
   triggersOn,
 } from './lib/backup-lib.mjs'
@@ -97,7 +98,7 @@ function prepareRows({ manifest, data }) {
   if (missing.length) {
     throw new Error(`${missing.length} login(s) in the backup do not exist in this project yet. They must sign up first (same email):\n  ${missing.join('\n  ')}`)
   }
-  return Object.fromEntries(TABLES.map((t) => [t.name, remapRows(t.name, data[t.name], map)]))
+  return Object.fromEntries(TABLES.map((t) => [t.name, remapRows(t.name, upgradeLegacyRows(t.name, data[t.name]), map)]))
 }
 
 /** One request that writes some tables with their own triggers switched off, all or nothing. */

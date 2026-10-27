@@ -34,7 +34,7 @@ Secrets: the Resend key lives only in the Supabase dashboard. The Supabase servi
 
 The free Supabase plan has no automatic backups, so you take them.
 
-- **Weekly, and before any database change:** `npm run backup:data`. It writes a dated folder under `backups/` (24 tables, no passwords). Copy it to encrypted storage (BitLocker drive, encrypted cloud folder) and delete old copies after 8 weeks.
+- **Weekly, and before any database change:** `npm run backup:data`. It writes a dated folder under `backups/` (26 tables, no passwords). Copy it to encrypted storage (BitLocker drive, encrypted cloud folder) and delete old copies after 8 weeks.
 - **Monthly, and after any big change:** prove the latest backup can be restored: `npm run backup:check -- backups/<folder>`. It restores the data into a scratch copy and a rolled-back transaction on DEV, compares every table with the live data, and prints PASSED or FAILED. It changes nothing. A FAILED result means the backup or the tooling is not trustworthy: stop and ask for help before relying on it.
 - The files contain real data about minors. Never email them, never put them in chat or GitHub, never leave them on a shared computer.
 
@@ -94,4 +94,4 @@ Before launch, and after any change to screens or colours, on a real phone (Andr
 3. Keyboard (computer): Tab through sign-in, a form and a college page; every control is reachable, the focus is visible, Enter submits.
 4. A screen reader (VoiceOver or TalkBack) reads the fields' labels and error messages.
 
-Colours were measured against WCAG AA (4.5:1) on 2026-10-26: the lowest ratio in use is 6.1:1 (secondary text on the grey badge), links and buttons are 10:1. Small action buttons (Copy, Edit) are 36 px tall; main buttons and inputs are 44 px.
+The black-and-gold theme (from `docs/UI design`) lives in `app/src/index.css`; screens use its names (`bg-surface`, `text-gold` and so on), not raw colours. Colours were measured against WCAG AA (4.5:1) on 2026-10-27: the lowest text ratio in use is 7.4:1 (error red on charcoal), body text is 17:1, gold on black 15:1, black text on gold buttons 15:1, and input outlines are 3.5:1 against the 3:1 needed. Small action buttons (Copy, Edit) are 36 px tall; main buttons and inputs are 44 px.

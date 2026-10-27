@@ -47,7 +47,7 @@ export default function CreateProfile() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-8">
       <h1 className="text-2xl font-semibold">Create your athlete profile</h1>
-      <p className="text-sm text-slate-600">A few basics to start. You can add the rest on the Profile tab.</p>
+      <p className="text-sm text-muted">A few basics to start. You can add the rest on the Profile tab.</p>
       {lookups.isError && <Message kind="error">We could not load the lists. Check your connection and reload.</Message>}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         {(teams?.length ?? 0) <= 1 && <input type="hidden" {...register('teamId')} />}

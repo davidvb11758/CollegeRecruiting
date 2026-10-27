@@ -27,7 +27,7 @@ function ExternalLink({ href, children }: { href: unknown; children: string }) {
   const url = text(href)
   if (!url) return null
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center text-red-900 underline">
+    <a href={url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center text-gold underline">
       {children}
     </a>
   )
@@ -37,7 +37,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   if (!value) return null
   return (
     <>
-      <dt className="text-slate-600">{label}</dt>
+      <dt className="text-muted">{label}</dt>
       <dd>{value}</dd>
     </>
   )
@@ -58,8 +58,8 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
   if (onList && !added) {
     return (
       <p className="flex flex-wrap items-center gap-3">
-        <span className="rounded bg-red-900 px-2 py-1 text-sm font-medium text-white">On My List</span>
-        <Link to={`${prefix}/list`} className="text-red-900 underline">
+        <span className="rounded bg-gold px-2 py-1 text-sm font-medium text-ink">On My List</span>
+        <Link to={`${prefix}/list`} className="text-gold underline">
           Go to {listName}
         </Link>
       </p>
@@ -72,7 +72,7 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
         {firstAdd && (
           <Message kind="info">Tip: start with 20 to 30 colleges, then narrow to the 10 to 15 you will contact.</Message>
         )}
-        <Link to={`${prefix}/list`} className="text-red-900 underline">
+        <Link to={`${prefix}/list`} className="text-gold underline">
           Go to {listName}
         </Link>
       </div>
@@ -105,12 +105,12 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
   const back = `${base}${(location.state as { search?: string } | null)?.search ?? ''}`
 
   const backLink = (
-    <Link to={back} className="flex min-h-11 items-center text-red-900 underline">
+    <Link to={back} className="flex min-h-11 items-center text-gold underline">
       ← Back to Find Colleges
     </Link>
   )
   if (!Number.isInteger(programId)) return <main className="px-4 py-6">{backLink}<Message kind="error">That college was not found.</Message></main>
-  if (detail.isPending) return <main className="px-4 py-6"><p role="status" className="text-slate-600">Loading…</p></main>
+  if (detail.isPending) return <main className="px-4 py-6"><p role="status" className="text-muted">Loading…</p></main>
   if (detail.isError) {
     return (
       <main className="flex flex-col gap-3 px-4 py-6">
@@ -136,7 +136,7 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
       {backLink}
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{text(program.college_name)}</h1>
-        <p className="text-slate-600">
+        <p className="text-muted">
           {[placeLabel(program.city, program.state), text(program.division_label), text(program.conference)].filter(Boolean).join(' · ')}
         </p>
       </header>
@@ -181,7 +181,7 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
           Coaches
         </h2>
         {coaches.length === 0 ? (
-          <p className="text-sm text-slate-600">No coach contacts are listed for this program yet. Check the program page above.</p>
+          <p className="text-sm text-muted">No coach contacts are listed for this program yet. Check the program page above.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {coaches.map((c) => (
@@ -192,14 +192,14 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
       </section>
 
       {verified && (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted">
           Last verified {verified}
           {days !== null && days > 0 ? ` (${days} day${days === 1 ? '' : 's'} ago)` : ''}. Contact details change; check the program page before you write.
         </p>
       )}
 
       {isStaff && (
-        <Suspense fallback={<p role="status" className="text-slate-600">Loading staff tools…</p>}>
+        <Suspense fallback={<p role="status" className="text-muted">Loading staff tools…</p>}>
           <StaffCollegeTools programId={programId} />
         </Suspense>
       )}

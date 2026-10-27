@@ -54,10 +54,10 @@ $f$;
 create function tests.test_signed_in_privileges_match_the_reviewed_list() returns setof text language plpgsql as $f$
 declare
   v_tables constant text[] := array['activity_entry', 'activity_type', 'app_setting', 'app_user', 'athlete', 'athlete_academic', 'athlete_athletic',
-    'athlete_college', 'athlete_guardian', 'athlete_major', 'athlete_preference', 'athlete_staff_assignment', 'athlete_target_division',
+    'athlete_college', 'athlete_guardian', 'athlete_major', 'athlete_note', 'athlete_note_dismissal', 'athlete_preference', 'athlete_staff_assignment', 'athlete_target_division',
     'athlete_video_link', 'change_history', 'club', 'college', 'college_coach', 'college_major', 'college_program', 'conference', 'division',
     'major_category', 'next_step', 'next_step_type', 'player_position', 'sport', 'staff_profile', 'staff_team', 'state', 'team', 'zip_location'];
-  v_views constant text[] := array['athlete_completeness', 'my_list', 'next_steps_due', 'program_competitiveness', 'program_search', 'staff_roster'];
+  v_views constant text[] := array['athlete_completeness', 'my_list', 'next_steps_due', 'note_thread', 'program_competitiveness', 'program_search', 'staff_roster'];
 begin
   return next is((select array_agg(r.name order by r.name) from tests.public_rels('r,p') r where has_table_privilege('authenticated', r.oid, 'select')),
     v_tables, 'signed-in users can read exactly the reviewed tables');

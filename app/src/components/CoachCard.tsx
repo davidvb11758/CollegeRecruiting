@@ -22,7 +22,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
       <SecondaryButton type="button" className="min-h-9 px-3 text-sm" onClick={() => void copy()} aria-label={`Copy ${what}`}>
         Copy
       </SecondaryButton>
-      <span role="status" className="text-sm text-slate-600">
+      <span role="status" className="text-sm text-muted">
         {status === 'copied' ? 'Copied' : status === 'failed' ? 'Could not copy. Select the text instead.' : ''}
       </span>
     </span>
@@ -36,19 +36,19 @@ export default function CoachCard({ coach, badge, actions }: { coach: Row; badge
   const email = text(coach.email)
   const phone = text(coach.phone)
   return (
-    <li className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3">
+    <li className="flex flex-col gap-1 rounded border border-line bg-surface p-3">
       <span className="font-medium">
         {text(coach.full_name)}
-        {coach.owner_athlete_id != null && <span className="ml-2 text-xs font-normal text-slate-600">({staffView ? 'added by the athlete' : 'added by you'})</span>}
+        {coach.owner_athlete_id != null && <span className="ml-2 text-xs font-normal text-muted">({staffView ? 'added by the athlete' : 'added by you'})</span>}
       </span>
-      <span className="text-sm text-slate-600">
+      <span className="text-sm text-muted">
         {coachTitleLabel(coach.title)}
         {coach.is_primary_recruiting_contact === true && ' · Main recruiting contact'}
       </span>
       {badge}
       {email && (
         <span className="flex flex-wrap items-center gap-x-3">
-          <a href={`mailto:${email}`} className="flex min-h-11 items-center break-all text-red-900 underline">
+          <a href={`mailto:${email}`} className="flex min-h-11 items-center break-all text-gold underline">
             {email}
           </a>
           <CopyButton value={email} what={`email for ${text(coach.full_name)}`} />
@@ -56,15 +56,15 @@ export default function CoachCard({ coach, badge, actions }: { coach: Row; badge
       )}
       {phone && (
         <span className="flex flex-wrap items-center gap-x-3">
-          <a href={`tel:${phone}`} className="flex min-h-11 items-center text-red-900 underline">
+          <a href={`tel:${phone}`} className="flex min-h-11 items-center text-gold underline">
             {phone}
           </a>
           <CopyButton value={phone} what={`phone for ${text(coach.full_name)}`} />
         </span>
       )}
-      {text(coach.recruits_note) && <span className="text-sm text-slate-600">{text(coach.recruits_note)}</span>}
+      {text(coach.recruits_note) && <span className="text-sm text-muted">{text(coach.recruits_note)}</span>}
       {text(coach.staff_page_url) && (
-        <a href={text(coach.staff_page_url)} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center text-red-900 underline">
+        <a href={text(coach.staff_page_url)} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center text-gold underline">
           Staff page
         </a>
       )}

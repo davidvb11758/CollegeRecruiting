@@ -88,13 +88,11 @@ const athleticBase = {
   blockTouchIn: '',
   dominantHand: '' as const,
   clubTeamName: '',
-  clubLevel: '',
   clubCoachName: '',
   clubCoachEmail: '',
   clubCoachPhone: '',
   hsCoachName: '',
   hsCoachEmail: '',
-  hsCoachPhone: '',
   awardsText: '',
   statsSummaryText: '',
   aboutMeText: '',
@@ -125,15 +123,10 @@ const academicBase = {
   classRankText: '',
   majorUndecided: false,
   intendedMajors: [],
-  satTotal: '',
-  satDate: '',
   actComposite: '',
-  actDate: '',
   plannedTestDatesText: '',
   ncaaEcStatus: '' as const,
   naiaStatus: '' as const,
-  counselorName: '',
-  counselorEmail: '',
 }
 
 describe('academic tab rules', () => {
@@ -141,21 +134,19 @@ describe('academic tab rules', () => {
     ['a GPA of 4.5', { gpaUnweighted: '4.5' }],
     ['a GPA with three decimals', { gpaUnweighted: '3.456' }],
     ['a weighted GPA of 6', { gpaWeighted: '6' }],
-    ['an SAT of 300', { satTotal: '300' }],
     ['an ACT of 37', { actComposite: '37' }],
     ['four intended majors', { intendedMajors: ['A', 'B', 'C', 'D'] }],
     ['undecided plus a major', { majorUndecided: true, intendedMajors: ['BUSN'] }],
-    ['a bad counselor email', { counselorEmail: 'x' }],
   ])('rejects %s', (_label, change) => {
     expect(academicSchema.safeParse({ ...academicBase, ...change }).success).toBe(false)
   })
   it('accepts values at the edges', () => {
-    expect(academicSchema.safeParse({ ...academicBase, gpaUnweighted: '4', gpaWeighted: '5.5', satTotal: '1600', actComposite: '1', intendedMajors: ['A', 'B', 'C'] }).success).toBe(true)
+    expect(academicSchema.safeParse({ ...academicBase, gpaUnweighted: '4', gpaWeighted: '5.5', actComposite: '1', intendedMajors: ['A', 'B', 'C'] }).success).toBe(true)
   })
 })
 
 describe('highlights tab rules', () => {
-  const base = { videos: [], instagramHandle: '', xHandle: '', tiktokHandle: '', externalProfileUrl: '', gameFilmUrl: '' }
+  const base = { videos: [], instagramHandle: '', tiktokHandle: '' }
   const video = { id: '', label: 'Hudl', url: 'https://example.com/v' }
   it('allows three videos but not four', () => {
     expect(highlightsSchema.safeParse({ ...base, videos: [video, video, video] }).success).toBe(true)
@@ -165,7 +156,6 @@ describe('highlights tab rules', () => {
     ['a link with no scheme', { videos: [{ ...video, url: 'example.com' }] }],
     ['an empty link', { videos: [{ ...video, url: '' }] }],
     ['a handle with a space', { instagramHandle: 'my handle' }],
-    ['a profile link with no scheme', { externalProfileUrl: 'example.com' }],
   ])('rejects %s', (_label, change) => {
     expect(highlightsSchema.safeParse({ ...base, ...change }).success).toBe(false)
   })

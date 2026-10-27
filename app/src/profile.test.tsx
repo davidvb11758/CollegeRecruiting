@@ -248,6 +248,55 @@ describe('profile tabs', () => {
   })
 })
 
+describe('fields hidden in this phase', () => {
+  const athletic = { athlete_id: 'athlete-1', primary_position: 'OH', club_level: '16 Open', hs_coach_phone: '515-555-0100' }
+
+  it('the athletic tab has no club level or high school coach phone, and a save never sends them', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/profile/athletic', { tables: { athlete_athletic: [athletic] } })
+    await screen.findByLabelText('Main position')
+    expect(screen.queryByLabelText('Club level')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('High school coach phone')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Club coach phone')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await screen.findByText('Saved.')
+    const sent = Object.keys(writes(calls, 'athlete_athletic', 'upsert')[0].payload as object)
+    expect(sent).not.toContain('club_level')
+    expect(sent).not.toContain('hs_coach_phone')
+    expect(sent).toContain('club_team_name')
+  })
+
+  it('academics has no SAT total, SAT or ACT date, or counselor, and a save never sends them', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/profile/academics')
+    await screen.findByLabelText('GPA (unweighted)')
+    for (const label of ['SAT total', 'SAT date', 'ACT date', 'School counselor name', 'School counselor email']) {
+      expect(screen.queryByLabelText(label)).not.toBeInTheDocument()
+    }
+    expect(screen.getByLabelText('ACT composite')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('GPA (unweighted)'), '3.8')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await screen.findByText('Saved.')
+    const sent = Object.keys(writes(calls, 'athlete_academic', 'upsert')[0].payload as object)
+    for (const column of ['sat_total', 'sat_date', 'act_date', 'counselor_name', 'counselor_email']) expect(sent).not.toContain(column)
+    expect(sent).toContain('act_composite')
+  })
+
+  it('highlights has no X, recruiting profile link or game film link, and a save never sends them', async () => {
+    const user = userEvent.setup()
+    const { calls } = start('/profile/highlights', { tables: { athlete_athletic: [{ athlete_id: 'athlete-1', primary_position: 'OH' }] } })
+    await screen.findByLabelText('Instagram')
+    for (const label of ['X (Twitter)', 'Recruiting profile link', 'Game film link']) expect(screen.queryByLabelText(label)).not.toBeInTheDocument()
+    expect(screen.getByLabelText('TikTok')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Instagram'), 'rocketsvb')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await screen.findByText('Saved.')
+    const sent = Object.keys(writes(calls, 'athlete_athletic', 'update')[0].payload as object)
+    for (const column of ['x_handle', 'external_profile_url', 'game_film_url']) expect(sent).not.toContain(column)
+    expect(sent).toContain('instagram_handle')
+  })
+})
+
 describe('preferences', () => {
   it('is reached from the More tab', async () => {
     const user = userEvent.setup()

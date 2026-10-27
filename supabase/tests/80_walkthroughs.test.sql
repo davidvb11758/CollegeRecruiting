@@ -62,8 +62,8 @@ begin
   -- log an email to a coach, set a next step
   select id into v_l from public.athlete_college where athlete_id = v_a and program_id = (select id from public.college_program where unitid = 900031);
   select id into v_coach from public.college_coach where full_name = 'Walk Coach';
-  return next is(tests.q_affected(uz, format($q$insert into public.activity_entry (athlete_id, athlete_college_id, activity_type_code, direction, coach_id, summary)
-                                               values (%L, %L, 'email', 'i_contacted', %L, 'Sent my intro and video')$q$, v_a, v_l, v_coach)),
+  return next is(tests.q_affected(uz, format($q$insert into public.activity_entry (athlete_id, athlete_college_id, activity_type_code, direction, coach_ids, summary)
+                                               values (%L, %L, 'email', 'i_contacted', array[%s]::bigint[], 'Sent my intro and video')$q$, v_a, v_l, v_coach)),
     1::bigint, 'the athlete logs an email to the coach');
   return next is(tests.q_affected(uz, format($q$insert into public.next_step (athlete_id, athlete_college_id, description, due_date) values (%L, %L, 'Follow up after one week', private.club_today() + 7)$q$, v_a, v_l)),
     1::bigint, 'and sets a next step');

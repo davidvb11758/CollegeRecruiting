@@ -61,9 +61,9 @@ export default function OverviewTab({ listId, hub }: { listId: string; hub: List
         <TextAreaField label="Notes" error={errors.notesText?.message} {...register('notesText')} />
       </SectionForm>
 
-      <section className="flex flex-col gap-2 border-t border-slate-300 pt-4" aria-label="Remove from My List">
+      <section className="flex flex-col gap-2 border-t border-line pt-4" aria-label="Remove from My List">
         <h2 className="text-lg font-semibold">Remove from My List</h2>
-        <p className="text-sm text-slate-600">The college and its history are kept. You can bring it back from My List.</p>
+        <p className="text-sm text-muted">The college and its history are kept. You can bring it back from My List.</p>
         {archive.error && <Message kind="error">{archive.error}</Message>}
         {confirming ? (
           <div className="flex flex-wrap gap-2">

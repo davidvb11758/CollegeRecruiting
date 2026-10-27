@@ -93,9 +93,9 @@ export default function PreferencesForm({ athleteId, profile, lookups }: { athle
     >
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Divisions</legend>
-        <p className="text-sm text-slate-600">For each division, say how interested you are.</p>
+        <p className="text-sm text-muted">For each division, say how interested you are.</p>
         {lookups.divisions.map((d) => (
-          <div key={d.code} className="flex flex-col gap-1 rounded border border-slate-300 bg-white p-3">
+          <div key={d.code} className="flex flex-col gap-1 rounded border border-line bg-surface p-3">
             <span className="text-sm font-medium">{d.label}</span>
             <div className="flex flex-wrap gap-x-4">
               {INTEREST.map((o) => (

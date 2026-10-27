@@ -20,16 +20,17 @@ One page for athletes and parents. Works on a phone; add the site to your home s
 ## 3. Work your list
 
 - **My List**: your colleges, filtered by priority and stage, sorted by priority, longest quiet, or next step due.
-- Open a college:
+- Open a college. It opens on **Activity**; use the tabs to switch:
   - **Overview**: set priority (1 top choice to 4 backup) and stage (researching, shortlisted, contacted, in conversation, camp or visit, offer, committed, closed), pick your main coach, tick the recruiting questionnaire when done, and write why you like it. **Remove from My List** keeps the history, and you can restore it.
-  - **Activity**: **Log** every email, call, text, camp or visit, with the date. Flag "I need to follow up" to set a next step. Entries marked *Automatic* (stage changes, added or removed colleges) are written by the app and cannot be edited. Entries *added by your coordinator* are labelled so you know who wrote them.
+  - **Activity**: **Log** every email, call, text, camp or visit, with the date. If you wrote to or spoke with several coaches (for example you emailed the head coach and copied the assistant), tick all of them. Flag "I need to follow up" to set a next step. Entries marked *Automatic* (stage changes, added or removed colleges) are written by the app and cannot be edited. Entries *added by your coordinator* are labelled so you know who wrote them.
   - **Contacts**: the coaches' details, plus contacts you add yourself (only you and your coordinators see those).
 - Every college can have **one next step** with a due date (for example "Email Coach Lee, due Friday"). When you finish it, the app offers to log it and set the next one.
+- **Notes**: tap **Send a note or question to your coordinator** on Home (or **More → Notes to my coordinator**). Your coordinators see it on their home screen until they dismiss it, and they can write back. A new note from a coordinator appears at the top of your Home until you tap **Dismiss** (it stays in the conversation).
 - **Home** shows what needs attention: overdue steps, steps due this week, colleges with no contact for 21 days, and recent activity.
 
 ## 4. Who can see what
 
-- Your club coordinators can see and edit your profile, list and log. Their name is recorded on anything they change, and you see "added by <name>".
+- Your club coordinators can see and edit your profile, list, log and notes. Their name is recorded on anything they change, and you see "added by <name>".
 - Other families cannot see your information. College coaches cannot see it either: the app does not send anything to colleges. You contact coaches yourself, by email or phone.
 - Do not share your password. Sign out on shared devices (**More → Sign out**).
 

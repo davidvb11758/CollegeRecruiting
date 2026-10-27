@@ -15,7 +15,7 @@ export default function WithProfile({
   const lookups = useLookups()
   if (profile.isPending || lookups.isPending) {
     return (
-      <p role="status" className="text-slate-600">
+      <p role="status" className="text-muted">
         Loading…
       </p>
     )

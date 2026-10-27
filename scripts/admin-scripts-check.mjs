@@ -167,6 +167,7 @@ add({ name: '04 disable refuses an unknown email', sql: disable('disabled', 'nob
 // ---- 05 export
 add({
   name: '05 export returns the whole athlete record as one JSON cell',
+  setup: `select tests.q_affected(tests.gid('user_a'), format($q$insert into public.athlete_note (athlete_id, kind, body) values (%L, 'question', 'Which camps?')$q$, tests.gid('athlete_a')));`,
   sql: () => fill(script('05_export_athlete.sql'), [["'ATHLETE_EMAIL'", `'${EMAIL('a')}'`]]),
   check(rows, t) {
     t(rows.length === 1, 'one row')
@@ -176,6 +177,8 @@ add({
     t(x.college_list?.length === 1 && x.college_list[0].college === 'Test College 1', 'college list with the college name')
     t(x.activity_log?.length >= 1, 'activity log')
     t(x.next_steps?.length === 1, 'next steps')
+    t(x.notes?.length === 1 && x.notes[0].body === 'Which camps?' && x.notes[0].kind === 'question', 'notes')
+    t(x.notes?.[0] && !('sender_user_id' in x.notes[0]), 'without the login id of the author')
     t(x.own_coach_contacts?.length === 1 && x.own_coach_contacts[0].full_name === 'Private Coach of A', 'own coach contacts')
     t(JSON.stringify(x.assigned_coordinators) === JSON.stringify(['Coach s@example.com']), 'assigned coordinators')
     t(!JSON.stringify(x).includes('Mom B'), 'nothing about the other athlete')
@@ -193,14 +196,17 @@ const del = (email = EMAIL('a'), confirm = 'DELETE') => () =>
   fill(part(script('06_delete_athlete.sql'), DELETE_MARK), [["v_email   text := 'ATHLETE_EMAIL'", `v_email   text := '${email}'`], ["'type DELETE here'", `'${confirm}'`]])
 add({
   name: '06 delete preview counts what would go',
+  setup: `select tests.q_affected(tests.gid('user_a'), format($q$insert into public.athlete_note (athlete_id, body) values (%L, 'A note')$q$, tests.gid('athlete_a')));`,
   sql: () => fill(part(script('06_delete_athlete.sql'), null, DELETE_MARK), [["'ATHLETE_EMAIL'", `'${EMAIL('a')}'`]]),
   check(rows, t) {
-    t(rows.length === 1 && Number(rows[0].colleges) === 1 && Number(rows[0].next_steps) === 1, 'counts for athlete a@')
+    t(rows.length === 1 && Number(rows[0].colleges) === 1 && Number(rows[0].next_steps) === 1 && Number(rows[0].notes) === 1, 'counts for athlete a@')
     t(Number(rows[0]?.history_rows) > 0, 'history rows are counted')
   },
 })
 add({
   name: '06 delete removes the athlete, the login and their history, and nothing else',
+  setup: `select tests.q_affected(tests.gid('user_a'), format($q$insert into public.athlete_note (athlete_id, body) values (%L, 'A note')$q$, tests.gid('athlete_a')));
+          select tests.q_affected(tests.gid('user_b'), format($q$insert into public.athlete_note (athlete_id, body) values (%L, 'B note')$q$, tests.gid('athlete_b')));`,
   sql: del(),
   verify: `select
       not exists (select 1 from public.athlete where id = tests.gid('athlete_a')) as athlete_gone,
@@ -210,6 +216,8 @@ add({
       not exists (select 1 from public.athlete_college where athlete_id = tests.gid('athlete_a')) as list_gone,
       not exists (select 1 from public.athlete_staff_assignment where athlete_id = tests.gid('athlete_a')) as assignment_gone,
       not exists (select 1 from public.college_coach where owner_athlete_id = tests.gid('athlete_a')) as private_coach_gone,
+      not exists (select 1 from public.athlete_note where athlete_id = tests.gid('athlete_a')) as notes_gone,
+      exists (select 1 from public.athlete_note where athlete_id = tests.gid('athlete_b')) as b_notes_kept,
       not exists (select 1 from public.change_history where athlete_id = tests.gid('athlete_a')) as history_gone,
       not exists (select 1 from public.change_history where table_name = 'app_user' and record_id = tests.gid('user_a')::text) as account_history_gone,
       exists (select 1 from public.athlete where id = tests.gid('athlete_b')) as b_athlete_kept,

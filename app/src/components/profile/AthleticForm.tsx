@@ -17,13 +17,11 @@ function defaults(profile: ProfileBundle): AthleticValues {
     blockTouchIn: str(a.block_touch_in),
     dominantHand: str(a.dominant_hand) as AthleticValues['dominantHand'],
     clubTeamName: str(a.club_team_name),
-    clubLevel: str(a.club_level),
     clubCoachName: str(a.club_coach_name),
     clubCoachEmail: str(a.club_coach_email),
     clubCoachPhone: str(a.club_coach_phone),
     hsCoachName: str(a.hs_coach_name),
     hsCoachEmail: str(a.hs_coach_email),
-    hsCoachPhone: str(a.hs_coach_phone),
     awardsText: str(a.awards_text),
     statsSummaryText: str(a.stats_summary_text),
     aboutMeText: str(a.about_me_text),
@@ -62,7 +60,6 @@ export default function AthleticForm({ athleteId, profile, lookups }: { athleteI
 
       <h2 className="text-lg font-semibold">Club team</h2>
       <Field label="Club team name" error={errors.clubTeamName?.message} {...register('clubTeamName')} />
-      <Field label="Club level" hint="For example 16 Open or 16 Club." error={errors.clubLevel?.message} {...register('clubLevel')} />
       <Field label="Club coach name" error={errors.clubCoachName?.message} {...register('clubCoachName')} />
       <Field label="Club coach email" type="email" error={errors.clubCoachEmail?.message} {...register('clubCoachEmail')} />
       <Field label="Club coach phone" type="tel" error={errors.clubCoachPhone?.message} {...register('clubCoachPhone')} />
@@ -70,7 +67,6 @@ export default function AthleticForm({ athleteId, profile, lookups }: { athleteI
       <h2 className="text-lg font-semibold">High school coach</h2>
       <Field label="High school coach name" error={errors.hsCoachName?.message} {...register('hsCoachName')} />
       <Field label="High school coach email" type="email" error={errors.hsCoachEmail?.message} {...register('hsCoachEmail')} />
-      <Field label="High school coach phone" type="tel" error={errors.hsCoachPhone?.message} {...register('hsCoachPhone')} />
 
       <TextAreaField label="Awards and honors" error={errors.awardsText?.message} {...register('awardsText')} />
       <TextAreaField label="Stats summary" error={errors.statsSummaryText?.message} {...register('statsSummaryText')} />
