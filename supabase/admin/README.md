@@ -26,6 +26,7 @@ A script run unedited fails with a clear message instead of doing anything.
 | `05_export_athlete.sql` | One athlete's whole record as JSON, for the family | No |
 | `06_delete_athlete.sql` | Deletes an athlete, their login and their history. **Cannot be undone.** Preview first | Yes |
 | `07_list_change_history.sql` | Who changed what: one athlete's history, and edits to shared college data | No |
+| `08_pilot_measures.sql` | The pilot's success measures (activation, engagement, coordinator edits, safety checks) as one table, with no names. Run it at each weekly check-in | No |
 
 ## Rules
 
@@ -44,3 +45,5 @@ A script run unedited fails with a clear message instead of doing anything.
 `npm run admin:check` (from the repo root, linked to DEV) runs every script inside a transaction that is always rolled
 back, using made-up test users, and checks the result: it names the right people, refuses bad input, and the delete
 script removes the athlete and their history but nothing else. Run it after changing a script.
+`node scripts/admin-scripts-check.mjs 08` runs only the cases whose name starts with 08. If your working copies of the scripts hold real emails, run
+the check on a copy of the placeholder versions: `ADMIN_SCRIPTS_DIR=<folder> npm run admin:check`.

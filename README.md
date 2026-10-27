@@ -9,7 +9,7 @@ College recruiting tracker for Iowa Rockets volleyball athletes and club coordin
 | `app/` | Web app: React + TypeScript + Vite, Tailwind, React Router, TanStack Query, react-hook-form + zod, `supabase-js`. Hosted as static files on Cloudflare (Workers static assets; see `app/wrangler.jsonc`). |
 | `supabase/migrations/` | **The only way the database schema changes.** One file per change. |
 | `supabase/tests/` | SQL tests (pgTAP), including the row-level security tests. |
-| `guides/` | Family guide, coordinator guide, runbook and launch checklist. |
+| `guides/` | Family guide, coordinator guide, runbook, launch checklist and pilot playbook. |
 | `supabase/admin/` | Admin SQL scripts run in the dashboard (promote staff, assign athletes, disable, export, delete, history). See its README. |
 | `supabase/auth-settings.md` | Auth settings that live in the dashboard (sign-in, redirect URLs, Resend SMTP, email wording). |
 | `CollegeInfo/` | Enriched college data files and notes (loaded into the database in WP4). |

@@ -6,6 +6,7 @@
 
 - [x] Row-level security is on for every table; every view runs with the caller's rights; signed-out users have no access to anything; signed-in users have only the reviewed grants; role, status and ownership columns cannot be written from the app. Re-run: `npm run db:test` (file `70_security_audit`). It fails if a later change loosens any of this.
 - [x] Who-can-see-what behaviour (athlete, coordinator, other coordinator, administrator, signed-out) is tested. Re-run: `npm run db:test` (files 20, 30, 50, 60).
+- [x] The four acceptance walkthroughs of the plan (athlete from sign-up to a logged email; coordinator on assigned athletes; the athlete sees the coordinator's edit; the attack checks) pass through the real roles. Re-run: `npm run db:test` (file `80_walkthroughs`).
 - [x] No Supabase service or secret key in the app or the repo: checked on every push by CI (source files) and by `npm run check:bundle` after a build (the finished site). The only key the site holds is the public one.
 - [ ] Cloudflare → Settings → Build → Build variables hold only `VITE_SUPABASE_URL` and the **publishable** key (not the secret key). Add `&& npm run check:bundle` to the build command so a bad build cannot deploy.
 - [ ] Supabase → Project Settings → API (Data API): exposed schemas are `public` only (never `private` or `auth`).
@@ -33,11 +34,12 @@
 - [x] Colour contrast measured: every text and background pair in use passes WCAG AA (lowest 6.1:1; links and buttons 10:1).
 - [x] Layout has no fixed widths; the page is built for 360px; main buttons and inputs are 44px tall. The built site is split so only staff download the staff screens.
 - [ ] Hand pass on a real phone (iPhone Safari and Android Chrome) and keyboard pass on a computer, using the steps at the end of the runbook. Note anything found.
-- [ ] Two or three friendly families try sign-up to first logged activity on their own phones, without help.
+- [ ] Dry run (week 0): two or three friendly families try sign-up to a list of five colleges and a logged activity on their own phones, without help, using the task table in `PILOT-PLAYBOOK.md`. Blockers fixed (test first), stopwatch task near 10 minutes.
 
 ## Data and operations
 
 - [x] Admin scripts for promoting staff, assigning, disabling, exporting, deleting and reading history, with a script check. Re-run: `npm run admin:check`.
+- [x] `08_pilot_measures.sql` reads the pilot's success measures (and four safety checks) from the data, with no names; checked on made-up users. Re-run: `node scripts/admin-scripts-check.mjs 08`.
 - [ ] Coordinators promoted and assigned their athletes (scripts 01 and 03); each has signed in once and seen the roster.
 - [ ] A 30-minute briefing with the coordinators using `guides/COORDINATOR-GUIDE.md`; each makes one real college correction in week one.
 - [ ] The family guide (`guides/FAMILY-GUIDE.md`) is sent with the link.

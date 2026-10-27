@@ -70,7 +70,8 @@ From launch, DEV holds real data: **no resets, no editing applied migrations.** 
 2. Supabase → **Reports/Usage**: the database is far below its free limits (about 12 families). Note the size.
 3. Cloudflare → Deployments: the latest build is green.
 4. Run `07_list_change_history.sql` (part B) to see the last 30 days of coordinator edits to college data.
-5. Take the weekly backup.
+5. Run `08_pilot_measures.sql` and read the safety rows (they must say ok) and the headline numbers. The weekly check-in and the week-4 decision are in `PILOT-PLAYBOOK.md`.
+6. Take the weekly backup.
 
 Free Supabase projects **pause after a week with no activity**. During the pilot there is daily use, but after the pilot ends or over a long quiet break, open the project and unpause it before families need it.
 
