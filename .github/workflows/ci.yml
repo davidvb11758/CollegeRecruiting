@@ -22,6 +22,8 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - name: The built site must not contain a secret key
+        run: npm run check:bundle
 
   guardrails:
     runs-on: ubuntu-latest
@@ -41,3 +43,5 @@ jobs:
         run: |
           bad=$(ls supabase/migrations | grep -Ev '^[0-9]{14}_[a-z0-9_]+\.sql$' || true)
           if [ -n "$bad" ]; then echo "Bad migration names: $bad"; exit 1; fi
+      - name: Backup and restore logic (unit tests)
+        run: node --test scripts/backup-lib.test.mjs

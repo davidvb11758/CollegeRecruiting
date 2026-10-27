@@ -32,3 +32,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Data backups (real athlete data about minors); never commit
+backups/

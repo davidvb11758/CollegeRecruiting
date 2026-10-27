@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import CoachCard from '../components/CoachCard'
-import StaffCollegeTools from '../components/find/StaffCollegeTools'
 import { Button, Message } from '../components/ui'
 import { useAuth } from '../lib/authContext'
 import { useAddToList, useCollegeDetail, useListEntries } from '../lib/collegeHooks'
@@ -18,6 +17,9 @@ import {
   settingLabel,
   sizeLabel,
 } from '../lib/collegeLabels'
+
+// The edit forms are only downloaded by staff.
+const StaffCollegeTools = lazy(() => import('../components/find/StaffCollegeTools'))
 
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
 
@@ -196,7 +198,11 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
         </p>
       )}
 
-      {isStaff && <StaffCollegeTools programId={programId} />}
+      {isStaff && (
+        <Suspense fallback={<p role="status" className="text-slate-600">Loading staff tools…</p>}>
+          <StaffCollegeTools programId={programId} />
+        </Suspense>
+      )}
     </main>
   )
 }

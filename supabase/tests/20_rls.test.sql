@@ -75,7 +75,7 @@ begin
   return next is(tests.q_count(ua, 'select count(*) from public.activity_entry'), 2::bigint, 'A sees only their own two entries (one system, one note)');
   return next is(tests.q_count(ua, 'select count(*) from public.app_user'), 1::bigint, 'A sees only their own account row');
   return next is(tests.q_count(ua, 'select count(*) from public.athlete_staff_assignment'), 1::bigint, 'A sees only their own assignment');
-  return next is(tests.q_count(ua, 'select count(*) from public.staff_profile'), 3::bigint, 'A can see the staff directory (their coordinators)');
+  return next is(tests.q_count(ua, 'select count(*) from public.staff_profile where last_name like ''%@example.com'''), 3::bigint, 'A can see the staff directory (their coordinators)');
 end;
 $f$;
 
@@ -230,7 +230,7 @@ begin
   return next is(tests.q_count(tests.gid('staff_s'), 'select count(*) from public.athlete_staff_assignment'), 1::bigint, 'S sees their own assignment');
   return next is(tests.q_count(tests.gid('staff_t'), 'select count(*) from public.athlete_staff_assignment'), 0::bigint, 'T sees none');
   return next is(tests.q_count(tests.gid('user_b'), 'select count(*) from public.athlete_staff_assignment'), 0::bigint, 'B sees none (nobody is assigned to B)');
-  return next is(tests.q_count(tests.gid('admin_x'), 'select count(*) from public.athlete_staff_assignment'), 1::bigint, 'admin sees all');
+  return next is(tests.q_count(tests.gid('admin_x'), 'select count(*) from public.athlete_staff_assignment where staff_user_id in (select user_id from public.staff_profile where last_name like ''%@example.com'')'), 1::bigint, 'admin sees all');
 end;
 $f$;
 

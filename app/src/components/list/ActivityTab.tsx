@@ -3,11 +3,13 @@ import { formatDate } from '../../lib/dates'
 import { deleteActivity, type Row } from '../../lib/listApi'
 import { useActivity, useActivityTypes, useListWrite } from '../../lib/listHooks'
 import { directionLabel, outcomeLabel } from '../../lib/listLabels'
+import { useScope } from '../../lib/scope'
 import { Button, Message, SecondaryButton } from '../ui'
 
 function Entry({ entry, typeLabel, coachName, onEdit }: { entry: Row; typeLabel: string; coachName: string; onEdit: () => void }) {
   const [confirming, setConfirming] = useState(false)
   const remove = useListWrite((id: string) => deleteActivity(id))
+  const { staffView } = useScope()
   const system = entry.source === 'system'
   const meta = [typeLabel, directionLabel(entry.direction), coachName, outcomeLabel(entry.outcome)].filter(Boolean)
   return (
@@ -15,7 +17,7 @@ function Entry({ entry, typeLabel, coachName, onEdit }: { entry: Row; typeLabel:
       <p className="text-sm text-slate-600">
         {formatDate(String(entry.activity_date))}
         {system && ' · Automatic'}
-        {entry.source === 'staff' && ' · Added by your coordinator'}
+        {entry.source === 'staff' && (staffView ? ' · Added by staff' : ' · Added by your coordinator')}
       </p>
       <p className={system ? 'text-sm text-slate-700' : 'font-medium'}>{String(entry.summary)}</p>
       {!system && meta.length > 0 && <p className="text-sm text-slate-600">{meta.join(' · ')}</p>}
