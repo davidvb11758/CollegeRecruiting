@@ -21,6 +21,8 @@ export type FakeWorld = {
   failWrites: Record<string, ErrorLike>
   /** The error every read of this table should fail with. */
   failReads: Record<string, ErrorLike>
+  /** Fail only the nth write (1 = the first) to this table, to test a save that stops half way. */
+  failNthWrite: Record<string, { n: number; error: ErrorLike }>
 }
 
 export function makeSession(email = 'family@example.com'): Session {
@@ -107,8 +109,12 @@ function makeQuery(world: FakeWorld, tables: Record<string, Row[]>, calls: { tab
 
   const run = () => {
     const rows = (tables[table] ??= [])
-    const failure = mode !== 'select' ? world.failWrites[table] : world.failReads[table]
-    if (mode !== 'select') calls.push({ table, mode, payload })
+    let failure = mode !== 'select' ? world.failWrites[table] : world.failReads[table]
+    if (mode !== 'select') {
+      calls.push({ table, mode, payload })
+      const nth = world.failNthWrite[table]
+      if (nth && calls.filter((c) => c.table === table).length === nth.n) failure = nth.error
+    }
     if (failure) return { data: null, error: failure }
     const match = (r: Row) => filters.every((f) => f(r))
     if (mode === 'insert') {
@@ -165,6 +171,7 @@ export function makeFakeSupabase(initial: Partial<FakeWorld> = {}) {
     tables: {},
     failWrites: {},
     failReads: {},
+    failNthWrite: {},
     ...initial,
   }
   const tables: Record<string, Row[]> = {

@@ -13,6 +13,7 @@ import { finishNextStep, logFromStep, restoreEntry, type Row } from '../lib/list
 import { useListHub, useListWrite, useNextSteps } from '../lib/listHooks'
 import { DIVISION_SHORT, priorityLabel, stageLabel } from '../lib/listLabels'
 import type { ActivityValues } from '../lib/listSchemas'
+import { useScope } from '../lib/scope'
 
 type Flow =
   | null
@@ -30,6 +31,7 @@ const TABS = [
 /** A8: one college on the athlete's list. Takes an athlete id so the staff area can reuse it. */
 export function ListHubScreen({ athleteId, base }: { athleteId: string; base: string }) {
   const { listId = '' } = useParams()
+  const { prefix } = useScope()
   const hub = useListHub(listId, athleteId)
   const steps = useNextSteps(listId)
   const finish = useListWrite((input: { step: Row; status: 'done' | 'skipped' }) => finishNextStep(String(input.step.id), input.status))
@@ -118,7 +120,7 @@ export function ListHubScreen({ athleteId, base }: { athleteId: string; base: st
             )}
           </p>
         )}
-        <Link to={`/find/${String(entry.program_id)}`} className="flex min-h-11 items-center text-sm text-red-900 underline">
+        <Link to={`${prefix}/find/${String(entry.program_id)}`} className="flex min-h-11 items-center text-sm text-red-900 underline">
           View college details
         </Link>
       </header>

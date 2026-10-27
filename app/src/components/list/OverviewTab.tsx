@@ -8,6 +8,7 @@ import { archiveEntry, saveOverview, type ListHub } from '../../lib/listApi'
 import { useListWrite } from '../../lib/listHooks'
 import { CLOSED_REASON_OPTIONS, PRIORITY_OPTIONS, STAGE_OPTIONS } from '../../lib/listLabels'
 import { overviewSchema, type OverviewValues } from '../../lib/listSchemas'
+import { useScope } from '../../lib/scope'
 import { Button, CheckboxField, Message, SecondaryButton, SectionForm, SelectField, TextAreaField } from '../ui'
 
 function defaults(entry: ListHub['entry']): OverviewValues {
@@ -25,6 +26,7 @@ function defaults(entry: ListHub['entry']): OverviewValues {
 /** A8a: why I like it, notes, priority, stage, main coach, questionnaire tick, and removing the college from the list. */
 export default function OverviewTab({ listId, hub }: { listId: string; hub: ListHub }) {
   const navigate = useNavigate()
+  const { prefix } = useScope()
   const write = useListWrite((v: OverviewValues) => saveOverview(listId, v, hub.entry))
   const archive = useListWrite(() => archiveEntry(listId))
   const [confirming, setConfirming] = useState(false)
@@ -65,7 +67,7 @@ export default function OverviewTab({ listId, hub }: { listId: string; hub: List
         {archive.error && <Message kind="error">{archive.error}</Message>}
         {confirming ? (
           <div className="flex flex-wrap gap-2">
-            <Button type="button" disabled={archive.pending} onClick={() => void archive.run(undefined).then(() => navigate('/list'), () => undefined)}>
+            <Button type="button" disabled={archive.pending} onClick={() => void archive.run(undefined).then(() => navigate(`${prefix}/list`), () => undefined)}>
               Yes, remove it
             </Button>
             <SecondaryButton type="button" onClick={() => setConfirming(false)}>

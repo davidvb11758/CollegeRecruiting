@@ -1,4 +1,4 @@
-import { NavLink, Navigate, Outlet } from 'react-router-dom'
+import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -38,14 +38,21 @@ const STAFF_TABS = [
   { to: '/staff/account', label: 'Account', end: false },
 ]
 
-/** Staff and admin screens: a top bar. */
+/** Staff and admin screens: a top bar. The Roster tab stays lit while a coordinator works inside an athlete's account. */
 export function StaffLayout() {
+  const { pathname } = useLocation()
+  const insideAthlete = pathname.startsWith('/staff/athlete/')
   return (
     <div className="mx-auto min-h-dvh max-w-5xl">
-      <nav aria-label="Main" className="sticky top-0 border-b border-slate-300 bg-white">
+      <nav aria-label="Main" className="sticky top-0 z-10 border-b border-slate-300 bg-white">
         <div className="flex items-center">
           {STAFF_TABS.map((t) => (
-            <NavLink key={t.to} to={t.to} end={t.end} className={linkClass}>
+            <NavLink
+              key={t.to}
+              to={t.to}
+              end={t.end}
+              className={(state) => linkClass({ isActive: state.isActive || (t.to === '/staff' && insideAthlete) })}
+            >
               {t.label}
             </NavLink>
           ))}

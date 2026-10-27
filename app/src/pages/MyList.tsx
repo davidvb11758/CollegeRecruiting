@@ -8,6 +8,7 @@ import type { Row } from '../lib/listApi'
 import { useMyList } from '../lib/listHooks'
 import { DIVISION_SHORT, PRIORITY_OPTIONS, priorityLabel, SETTLED_STAGES, STAGE_OPTIONS, stageLabel } from '../lib/listLabels'
 import { SORTS, sortList, type SortKey } from '../lib/listSort'
+import { useScope } from '../lib/scope'
 
 const ago = (days: number) => (days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`)
 const text = (v: unknown) => (v == null ? '' : String(v))
@@ -47,6 +48,7 @@ function ListCard({ row, base }: { row: Row; base: string }) {
 
 /** A7: the athlete's colleges, with stage and priority filters and sorting. Filters live in the page address. */
 export function MyListScreen({ athleteId, base }: { athleteId: string; base: string }) {
+  const { prefix } = useScope()
   const [params, setParams] = useSearchParams()
   const list = useMyList(athleteId)
   const stage = params.get('stage') ?? ''
@@ -94,7 +96,7 @@ export function MyListScreen({ athleteId, base }: { athleteId: string; base: str
           {all.length === 0 ? (
             <div className="flex flex-col gap-2">
               <p className="text-slate-600">Your list is empty. Search the database and add the colleges you want to consider. Start with 20 to 30, then narrow to the 10 to 15 you will contact.</p>
-              <Link to="/find" className="min-h-11 rounded bg-red-900 px-4 py-2.5 text-center font-medium text-white">
+              <Link to={`${prefix}/find`} className="min-h-11 rounded bg-red-900 px-4 py-2.5 text-center font-medium text-white">
                 Find Colleges
               </Link>
             </div>

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import CoachCard from '../components/CoachCard'
+import StaffCollegeTools from '../components/find/StaffCollegeTools'
 import { Button, Message } from '../components/ui'
 import { useAuth } from '../lib/authContext'
 import { useAddToList, useCollegeDetail, useListEntries } from '../lib/collegeHooks'
+import { useScope } from '../lib/scope'
 import {
   bandLabel,
   controlLabel,
@@ -43,9 +45,11 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
   const entries = useListEntries(athleteId)
   const { add, adding, added, error } = useAddToList(athleteId ?? '')
   const [firstAdd, setFirstAdd] = useState(false)
+  const { prefix, staffView } = useScope()
   if (!athleteId) {
     return <Message kind="info">To add this college to an athlete's list, open that athlete first.</Message>
   }
+  const listName = staffView ? "the athlete's list" : 'My List'
   if (entries.isPending) return null
   const entry = (entries.data ?? []).find((e) => e.program_id === programId)
   const onList = entry && !entry.archived_at
@@ -53,8 +57,8 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
     return (
       <p className="flex flex-wrap items-center gap-3">
         <span className="rounded bg-red-900 px-2 py-1 text-sm font-medium text-white">On My List</span>
-        <Link to="/list" className="text-red-900 underline">
-          Go to My List
+        <Link to={`${prefix}/list`} className="text-red-900 underline">
+          Go to {listName}
         </Link>
       </p>
     )
@@ -62,12 +66,12 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
   if (added) {
     return (
       <div className="flex flex-col gap-2">
-        <Message kind="info">Added to My List.</Message>
+        <Message kind="info">Added to {listName}.</Message>
         {firstAdd && (
           <Message kind="info">Tip: start with 20 to 30 colleges, then narrow to the 10 to 15 you will contact.</Message>
         )}
-        <Link to="/list" className="text-red-900 underline">
-          Go to My List
+        <Link to={`${prefix}/list`} className="text-red-900 underline">
+          Go to {listName}
         </Link>
       </div>
     )
@@ -82,7 +86,7 @@ function AddToList({ athleteId, programId }: { athleteId: string | null; program
           void add({ programId, archivedEntryId: entry?.id }).catch(() => undefined)
         }}
       >
-        {adding ? 'Adding…' : entry ? 'Restore to My List' : 'Add to My List'}
+        {adding ? 'Adding…' : `${entry ? 'Restore to' : 'Add to'} ${listName}`}
       </Button>
     </div>
   )
@@ -93,6 +97,8 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
   const { programId: param } = useParams()
   const location = useLocation()
   const programId = Number(param)
+  const { state } = useAuth()
+  const isStaff = state.status === 'signedIn' && state.account.role !== 'athlete'
   const detail = useCollegeDetail(programId, athleteId)
   const back = `${base}${(location.state as { search?: string } | null)?.search ?? ''}`
 
@@ -189,6 +195,8 @@ export function CollegeDetailScreen({ base, athleteId }: { base: string; athlete
           {days !== null && days > 0 ? ` (${days} day${days === 1 ? '' : 's'} ago)` : ''}. Contact details change; check the program page before you write.
         </p>
       )}
+
+      {isStaff && <StaffCollegeTools programId={programId} />}
     </main>
   )
 }

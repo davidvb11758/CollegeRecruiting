@@ -9,6 +9,7 @@ College recruiting tracker for Iowa Rockets volleyball athletes and club coordin
 | `app/` | Web app: React + TypeScript + Vite, Tailwind, React Router, TanStack Query, react-hook-form + zod, `supabase-js`. Hosted as static files (Cloudflare Pages). |
 | `supabase/migrations/` | **The only way the database schema changes.** One file per change. |
 | `supabase/tests/` | SQL tests (pgTAP), including the row-level security tests. |
+| `supabase/admin/` | Admin SQL scripts run in the dashboard (promote staff, assign athletes, disable, export, delete, history). See its README. |
 | `supabase/auth-settings.md` | Auth settings that live in the dashboard (sign-in, redirect URLs, Resend SMTP, email wording). |
 | `CollegeInfo/` | Enriched college data files and notes (loaded into the database in WP4). |
 | `.github/workflows/ci.yml` | CI: type-check, lint, tests and build for the app, plus guardrail checks. |
@@ -39,6 +40,7 @@ npm run db:link:dev                # once, links the CLI to DEV (asks for the DE
 npm run db:diff                    # dry run: what would be applied
 npm run db:push                    # apply migrations to the linked project
 npm run db:test                    # run supabase/tests against the linked project (no Docker; see below)
+npm run admin:check                # run the admin SQL scripts (supabase/admin) on test users in a rolled-back transaction
 npm run load:colleges:verify        # check the loaded college data against the CSVs (load itself: npm run load:colleges)
 npm run db:dryrun                  # run unapplied migrations in a transaction and roll back (nothing changes)
 npm run db:dryrun:tests            # same, then run all tests against them

@@ -8,6 +8,7 @@
     "db:push": "supabase db push --linked",
     "db:diff": "supabase db push --linked --dry-run",
     "db:test": "node scripts/db-test.mjs",
+    "admin:check": "node scripts/admin-scripts-check.mjs",
     "db:new": "supabase migration new",
     "db:test:docker": "supabase test db --linked",
     "db:dryrun": "node scripts/db-dryrun.mjs",

@@ -13,13 +13,14 @@ import ListHub from './pages/ListHub'
 import MyList from './pages/MyList'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
-import Placeholder from './pages/Placeholder'
 import Preferences from './pages/Preferences'
 import Profile from './pages/Profile'
 import ResetPassword from './pages/ResetPassword'
+import Roster from './pages/Roster'
 import SessionExpired from './pages/SessionExpired'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
+import StaffAthlete from './pages/StaffAthlete'
 
 // One quick retry smooths over a brief network drop; tests fail fast instead.
 const makeQueryClient = () => new QueryClient({ defaultOptions: { queries: { retry: import.meta.env.MODE === 'test' ? false : 1 } } })
@@ -57,7 +58,8 @@ export default function App() {
 
           <Route element={<RequireRole roles={['staff', 'admin']} />}>
             <Route element={<StaffLayout />}>
-              <Route path="/staff" element={<Placeholder title="Roster" />} />
+              <Route path="/staff" element={<Roster />} />
+              <Route path="/staff/athlete/:athleteId/*" element={<StaffAthlete />} />
               <Route path="/staff/find" element={<StaffFind />} />
               <Route path="/staff/find/:programId" element={<StaffCollegeDetail />} />
               <Route path="/staff/account" element={<Account />} />
