@@ -319,6 +319,156 @@ end;
 $f$;
 
 -- ---------------------------------------------------------------------------------------------
+-- convert_athlete_to_staff: keep the login, delete everything that belongs to the student role
+-- ---------------------------------------------------------------------------------------------
+create function tests.test_convert_athlete_to_staff_previews_and_refuses() returns setof text language plpgsql as $f$
+declare
+  r record;
+  v_a uuid; ua uuid;
+  v_pilot text := (select t.name from public.team t order by t.created_at limit 1);
+begin
+  perform tests.world();
+  v_a := tests.gid('athlete_a'); ua := tests.gid('user_a');
+
+  -- the preview is the default and changes nothing
+  select * into r from admin.convert_athlete_to_staff(account_email => ' A@example.com ', given_name => 'Alex', family_name => 'Able', team_name => v_pilot);
+  return next ok(not r.converted, 'the default is a preview');
+  return next is(r.email, 'a@example.com', 'it names the account');
+  return next is(r.colleges, (select count(*) from public.athlete_college where athlete_id = v_a), 'it counts the college list');
+  return next is(r.history_rows, (select count(*) from public.change_history where athlete_id = v_a), 'and the history that would go');
+  return next ok(r.message like 'PREVIEW ONLY%PERMANENTLY DELETES%confirm => true%a@example.com%', 'and says what will happen and how to go ahead');
+  return next is((select count(*) from public.athlete where id = v_a), 1::bigint, 'nothing was deleted');
+  return next is((select role::text from public.app_user where user_id = ua), 'athlete', 'and the role is unchanged');
+  return next is((select count(*) from public.staff_profile where user_id = ua), 0::bigint, 'with no staff profile made');
+  return next is((select count(*) from admin.convert_athlete_to_staff(account_email => 'a@example.com', given_name => 'Alex', family_name => 'Able',
+                                                                      team_name => v_pilot, confirm => false)), 1::bigint, 'confirm => false is also a preview');
+
+  -- refusals
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'Alex', 'Able', %L, confirm => true)$q$, v_pilot),
+    '%confirm_email must repeat%'), 'confirming without repeating the email is refused');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'Alex', 'Able', %L, confirm_email => 'b@example.com', confirm => true)$q$, v_pilot),
+    '%confirm_email must repeat%'), 'repeating a different email is refused');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('ghost@example.com', 'A', 'A', %L)$q$, v_pilot), '%No account with the email%'), 'an unknown email is refused');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('z@example.com', 'A', 'A', %L)$q$, v_pilot), '%no athlete profile%admin.promote_to_staff%'),
+    'someone with no athlete profile is sent to promote_to_staff');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('s@example.com', 'A', 'A', %L)$q$, v_pilot), '%no athlete profile%'), 'and so is a coordinator');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', '', 'A', %L)$q$, v_pilot), '%first and last name%'), 'a blank name is refused');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'A', 'A', %L, 'Janitor')$q$, v_pilot), '%job title%'), 'an unknown job title is refused');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'A', 'A', %L, account_role => 'athlete')$q$, v_pilot), '%staff or admin%'), 'only staff or admin can be given');
+  return next ok(tests.admin_refuses($q$select * from admin.convert_athlete_to_staff('a@example.com', 'A', 'A', 'No Such Team')$q$, '%No team named%Teams:%'), 'an unknown team is refused');
+  perform admin.set_account_status('a@example.com', 'disabled');
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'A', 'A', %L)$q$, v_pilot), '%switched off%'), 'a switched-off account is refused');
+  return next is((select count(*) from public.athlete where id = v_a), 1::bigint, 'none of the refusals deleted anything');
+  return next is((select role::text from public.app_user where user_id = ua), 'athlete', 'or changed the role');
+end;
+$f$;
+
+create function tests.test_convert_athlete_to_staff_keeps_the_login_and_deletes_the_student_data() returns setof text language plpgsql as $f$
+declare
+  r record;
+  v_a uuid; v_b uuid; ua uuid; ub uuid; us uuid;
+  v_pilot text := (select t.name from public.team t order by t.created_at limit 1);
+  v_note_a uuid; v_note_b uuid;
+  v_hist_b bigint;
+  v_auth_before timestamptz;
+begin
+  perform tests.world();
+  v_a := tests.gid('athlete_a'); v_b := tests.gid('athlete_b'); ua := tests.gid('user_a'); ub := tests.gid('user_b'); us := tests.gid('staff_s');
+
+  -- everything the student role can own: a note, a dismissal of it, a dismissal of a note on someone else's account, and history of what they did
+  insert into public.athlete_note (athlete_id, sender, sender_user_id, body) values (v_a, 'athlete', ua, 'A question') returning id into v_note_a;
+  insert into public.athlete_note (athlete_id, sender, sender_user_id, body) values (v_b, 'staff', us, 'A note for B') returning id into v_note_b;
+  insert into public.athlete_note_dismissal (note_id, user_id) values (v_note_a, ua), (v_note_b, ua);
+  insert into public.change_history (athlete_id, table_name, record_id, change_type, changed_by, changed_by_role)
+  values (null, 'college_coach', 'x', 'updated', ua, 'athlete');
+  v_hist_b := (select count(*) from public.change_history where athlete_id = v_b);
+  v_auth_before := (select created_at from auth.users where id = ua);
+
+  return next ok((select count(*) from public.athlete_college where athlete_id = v_a) > 0
+                 and (select count(*) from public.activity_entry where athlete_id = v_a) > 0
+                 and (select count(*) from public.next_step where athlete_id = v_a) > 0
+                 and (select count(*) from public.athlete_guardian where athlete_id = v_a) > 0
+                 and (select count(*) from public.college_coach where owner_athlete_id = v_a) > 0
+                 and (select count(*) from public.athlete_staff_assignment where athlete_id = v_a) > 0, 'before: the athlete has data in every area');
+
+  select * into r from admin.convert_athlete_to_staff(account_email => ' A@example.com ', given_name => ' Alex ', family_name => 'Able', team_name => v_pilot,
+                                                       job_title => 'Team Coach', confirm_email => 'A@Example.com', confirm => true);
+  return next ok(r.converted, 'confirmed: converted');
+  return next ok(r.message like 'Converted.%sign out and in%', 'and it says they must sign in again');
+
+  -- the login stays, as the same account
+  return next is((select count(*) from auth.users where id = ua and email = 'a@example.com'), 1::bigint, 'the login is still there, with the same email');
+  return next is((select created_at from auth.users where id = ua), v_auth_before, 'and it is the same account, not a new one');
+  return next is((select role::text || '/' || status::text from public.app_user where user_id = ua), 'staff/active', 'the account is now staff, and active');
+  return next is((select first_name || ' ' || last_name || ' / ' || title || ' / ' || email from public.staff_profile where user_id = ua), 'Alex Able / Team Coach / a@example.com',
+    'with a staff profile (name tidied)');
+  return next is((select t.name from public.staff_team st join public.team t on t.id = st.team_id where st.staff_user_id = ua), v_pilot, 'on the team they were given');
+  return next is((select count(*) from public.staff_team where staff_user_id = ua), 1::bigint, 'and only that one');
+
+  -- everything that belonged to the student role is gone
+  return next is((select count(*) from public.athlete where id = v_a or user_id = ua), 0::bigint, 'the athlete profile is gone');
+  return next is((select count(*) from public.athlete_college where athlete_id = v_a), 0::bigint, 'the college list is gone');
+  return next is((select count(*) from public.activity_entry where athlete_id = v_a), 0::bigint, 'the activity log is gone');
+  return next is((select count(*) from public.next_step where athlete_id = v_a), 0::bigint, 'the next steps are gone');
+  return next is((select count(*) from public.athlete_note where athlete_id = v_a), 0::bigint, 'the notes are gone');
+  return next is((select count(*) from public.athlete_note_dismissal where note_id = v_note_a), 0::bigint, 'and the dismissals of them');
+  return next is((select count(*) from public.athlete_note_dismissal where user_id = ua), 0::bigint, 'and their dismissals of other notes');
+  return next is((select count(*) from public.athlete_guardian where athlete_id = v_a), 0::bigint, 'the guardians are gone');
+  return next is((select count(*) from public.college_coach where owner_athlete_id = v_a), 0::bigint, 'their own coach contacts are gone');
+  return next is((select count(*) from public.athlete_staff_assignment where athlete_id = v_a), 0::bigint, 'the coordinator assignments are gone');
+  return next is((select count(*) from public.change_history where athlete_id = v_a or (table_name = 'athlete' and record_id = v_a::text)), 0::bigint, 'the history about the athlete is gone');
+  return next is((select count(*) from public.change_history where changed_by = ua and changed_by_role = 'athlete'), 0::bigint, 'and the history of what they did as a student');
+
+  -- nothing else is touched
+  return next is((select count(*) from public.athlete where id = v_b), 1::bigint, 'the other athlete is untouched');
+  return next is((select count(*) from public.change_history where athlete_id = v_b), v_hist_b, 'including their history');
+  return next is((select count(*) from public.athlete_note where id = v_note_b), 1::bigint, 'and the note on their account');
+  return next is((select count(*) from public.athlete_note_dismissal where note_id = v_note_b), 0::bigint, 'minus this person''s dismissal of it');
+  return next ok(exists (select 1 from public.college_coach where id = tests.bid('coach_master')) and exists (select 1 from public.college_program where id = tests.bid('program_1')),
+    'shared college data is kept');
+  return next is((select count(*) from public.athlete_staff_assignment where athlete_id = v_b), 0::bigint, 'and nobody''s other assignments changed');
+
+  -- the switch that pauses the history is off again, and the role change itself is on record as a dashboard change
+  return next is(coalesce(nullif(current_setting('app.skip_audit', true), ''), 'off'), 'off', 'the switch that pauses the history is back off');
+  return next ok(exists (select 1 from public.change_history h where h.table_name = 'app_user' and h.record_id = ua::text and h.change_type = 'updated'
+                           and h.changed_by is null and h.changed_by_role = 'system' and h.new_values ->> 'role' = 'staff'),
+    'the change to staff is in the history as a dashboard change');
+
+  -- and they now act as staff: no athletes until assigned, then only the assigned ones
+  return next is(tests.q_count(ua, 'select count(*) from public.athlete'), 0::bigint, 'signed in, they see no athletes yet');
+  perform admin.assign_athletes('a@example.com', array['b@example.com']);
+  return next is(tests.q_count(ua, format('select count(*) from public.athlete where id = %L', v_b)), 1::bigint, 'after being assigned B they can open B');
+  return next is((select w.role::text || ' / ' || w.team from admin.who_is_who w where w.email = 'a@example.com'), 'staff / ' || v_pilot, 'who_is_who shows them as staff');
+
+  -- it cannot be run twice
+  return next ok(tests.admin_refuses(format($q$select * from admin.convert_athlete_to_staff('a@example.com', 'A', 'A', %L)$q$, v_pilot), '%no athlete profile%'), 'running it again is refused');
+  return next is((select role::text || '/' || status::text from public.app_user where user_id = ub), 'athlete/active', 'the other athlete''s login is unchanged');
+end;
+$f$;
+
+create function tests.test_convert_athlete_to_staff_can_make_an_administrator() returns setof text language plpgsql as $f$
+declare
+  r record;
+  v_pilot text := (select t.name from public.team t order by t.created_at limit 1);
+begin
+  perform tests.world();
+  select * into r from admin.convert_athlete_to_staff(account_email => 'a@example.com', given_name => 'Alex', family_name => 'Able', team_name => v_pilot,
+                                                       account_role => 'admin', confirm_email => 'a@example.com', confirm => true);
+  return next ok(r.converted, 'converted');
+  return next is((select role::text from public.app_user where user_id = tests.gid('user_a')), 'admin', 'as an administrator');
+  return next is(tests.q_count(tests.gid('user_a'), format('select count(*) from public.athlete where id = %L', tests.gid('athlete_b'))), 1::bigint, 'who sees every athlete');
+end;
+$f$;
+
+create function tests.test_promote_to_staff_points_at_the_convert_function() returns setof text language plpgsql as $f$
+begin
+  perform tests.world();
+  return next ok(tests.admin_refuses($q$select * from admin.promote_to_staff('a@example.com', 'A', 'A', 'Iowa Rockets 16R')$q$, '%has an athlete profile%admin.convert_athlete_to_staff%'),
+    'promoting someone with an athlete profile points at convert_athlete_to_staff');
+end;
+$f$;
+
+-- ---------------------------------------------------------------------------------------------
 -- Who is who, and what a dashboard change looks like in the history
 -- ---------------------------------------------------------------------------------------------
 create function tests.test_who_is_who_and_the_history() returns setof text language plpgsql as $f$

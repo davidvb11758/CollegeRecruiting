@@ -26,6 +26,7 @@ In the dashboard, **Project Settings → Data API (older name: API) → Exposed 
 | `select * from admin.who_is_who` | Lists every account: role, status, athlete or staff name, team, coordinators, whether sign-in is blocked | No |
 | `admin.create_team(team_name => …)` | Adds a team (optional: `grad_year`, `season`, `team_level`, `head_coach`) | Yes |
 | `admin.promote_to_staff(account_email, given_name, family_name, team_name)` | Turns a sign-up into a coordinator (or administrator, `account_role => 'admin'`), on one team that **replaces** any earlier one. Refuses anyone with an athlete profile, a switched-off account, or the only administrator | Yes |
+| `admin.convert_athlete_to_staff(account_email, given_name, family_name, team_name)` | For a login that already has an athlete profile: **preview** first (the default), then with `confirm_email` repeated and `confirm => true` it keeps the login and makes it staff (or admin) on one team, and **permanently deletes the athlete profile and everything attached** (list, log, notes, guardians, assignments, history). Sign out and in again afterwards | Yes |
 | `admin.assign_athletes(coordinator_email, athlete_emails => array[…])` | Gives a coordinator access to athletes. New main coordinator moves the old one to extra. All or nothing | Yes |
 | `admin.unassign_athlete(player_email, coordinator_email)` | Takes an athlete away from a coordinator | Yes |
 | `admin.set_account_status(account_email, new_status)` | Switches an account off (bounced at once, data kept) or back on. Refuses to switch off the only administrator | Yes |
@@ -50,7 +51,7 @@ A script run unedited returns nothing useful rather than changing anything.
 - Never paste an export, an email list or a result table into chat, a ticket or the repo. Send an export only to the
   athlete's parent or guardian, by a private channel. Never type real emails into the files in this folder; edit them in the SQL Editor.
 - A person must sign up in the app first (with the shared sign-up code) before you can promote them or assign them. Tell staff to
-  stop at the "create profile" screen: a login that has made an athlete profile cannot be promoted.
+  stop at the "create profile" screen: a login that has made an athlete profile cannot be promoted (use `admin.convert_athlete_to_staff` to keep the login and delete the student data, or sign up again with another email).
 - A promoted person must sign out and in again.
 - Changes made here are recorded in the change history as "Dashboard/system" (there is no signed-in person).
 - Changing the shared sign-up code is a separate one-line statement, kept out of the repo on purpose

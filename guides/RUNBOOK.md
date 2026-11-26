@@ -21,6 +21,7 @@ Secrets: the Resend key lives only in the Supabase dashboard. The Supabase servi
 | Add a family | Give them the site link and the sign-up code. Nothing else to do |
 | Change the sign-up code | SQL Editor: `insert into private.secret_setting (key, value) values ('signup_code', 'NEW-CODE') on conflict (key) do update set value = excluded.value;` (the code is not case sensitive). Tell new families the new code; existing accounts are not affected |
 | Make someone a coordinator | They sign up (and stop at the "create profile" screen), then run `admin.promote_to_staff(…)`. It puts them on one team, replacing an earlier one. They sign out and in again |
+| Turn a player's login into a coordinator | `admin.convert_athlete_to_staff(…)`: the first run is only a preview; run it again with `confirm => true` and the email repeated. It keeps the login but permanently deletes the player profile and its data. They sign out and in again |
 | Give a coordinator athletes | Sign in as an administrator and open **Assignments** (add, make main, remove; takes effect at once). For a batch, run `admin.assign_athletes(…)`; to take one away, `admin.unassign_athlete(…)` |
 | Add a team | `admin.create_team(…)` |
 | Switch an account off or on | `admin.set_account_status(…)` |

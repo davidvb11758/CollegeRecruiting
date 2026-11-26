@@ -14,8 +14,15 @@ select * from admin.create_team(team_name => 'Iowa Rockets 17R', grad_year => 20
 
 -- PROMOTE A SIGN-UP TO STAFF on one team (replaces any earlier team). They sign up first, and must sign out and in afterwards.
 -- job_title: 'Recruiting Coordinator' (default), 'Team Coach' or 'Director'.  account_role: 'staff' (default) or 'admin'.
--- Someone with an athlete profile cannot be promoted (staff need their own sign-up; remove a mistaken profile with delete_athlete).
+-- Someone with an athlete profile cannot be promoted: use convert_athlete_to_staff (below) to keep their login, or have them sign up with another email.
 select * from admin.promote_to_staff(account_email => 'COACH_EMAIL', given_name => 'First', family_name => 'Last', team_name => 'Iowa Rockets 16R');
+
+-- CONVERT AN ATHLETE'S LOGIN TO STAFF: keeps the login, makes it staff (or admin), and PERMANENTLY DELETES the athlete profile
+-- and everything attached to it (college list, log, next steps, notes, guardians, assignments, history). Export first (05) if in doubt.
+-- Step 1, preview (the default; nothing changes):
+select * from admin.convert_athlete_to_staff(account_email => 'PERSON_EMAIL', given_name => 'First', family_name => 'Last', team_name => 'Iowa Rockets 16R');
+-- Step 2, only when the preview shows the right person: repeat the email and confirm. They must sign out and in again.
+-- select * from admin.convert_athlete_to_staff(account_email => 'PERSON_EMAIL', given_name => 'First', family_name => 'Last', team_name => 'Iowa Rockets 16R', confirm_email => 'PERSON_EMAIL', confirm => true);
 
 -- ASSIGN ATHLETES to a coordinator. assign_as: 'primary' (default; the old main coordinator becomes 'secondary') or 'secondary'.
 select * from admin.assign_athletes(coordinator_email => 'COACH_EMAIL', athlete_emails => array['FAMILY_EMAIL_1', 'FAMILY_EMAIL_2']);
