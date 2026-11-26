@@ -14,6 +14,9 @@ export function friendlyDbError(error: unknown): string {
   if (message.includes('at most 3 intended majors')) return 'Choose at most 3 intended majors.'
   if (message.includes('list is limited to')) return 'Your list is full (30 colleges). Archive one before adding another.'
   if (e.code === '23505' && message.includes('athlete_college')) return 'This college is already on your list.'
+  if (message.includes('only an administrator')) return 'Only an administrator can change assignments. Sign out and in again if your role has changed.'
+  if (message.includes('not an active coordinator')) return 'That person is not an active coordinator, so they cannot be assigned. Refresh the page and choose someone else.'
+  if (e.code === '23505' && message.includes('athlete_staff_assignment')) return 'That coordinator is already assigned to this athlete. Refresh the page.'
   if (e.code === '42501' || message.includes('row-level security') || message.includes('permission denied')) {
     return 'You do not have permission to save this. Sign out and in again, or contact your coordinator.'
   }

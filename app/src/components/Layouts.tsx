@@ -40,18 +40,21 @@ export function AthleteLayout() {
 const STAFF_TABS = [
   { to: '/staff', label: 'Roster', end: true },
   { to: '/staff/find', label: 'Find Colleges', end: false },
+  { to: '/staff/assignments', label: 'Assignments', end: false, adminOnly: true },
   { to: '/staff/account', label: 'Account', end: false },
 ]
 
 /** Staff and admin screens: a top bar. The Roster tab stays lit while a coordinator works inside an athlete's account. */
 export function StaffLayout() {
   const { pathname } = useLocation()
+  const { state } = useAuth()
+  const isAdmin = state.status === 'signedIn' && state.account.role === 'admin'
   const insideAthlete = pathname.startsWith('/staff/athlete/')
   return (
     <div className="mx-auto min-h-dvh max-w-5xl">
       <nav aria-label="Main" className="sticky top-0 z-10 border-b border-line bg-surface">
         <div className="flex items-center">
-          {STAFF_TABS.map((t) => (
+          {STAFF_TABS.filter((t) => isAdmin || !t.adminOnly).map((t) => (
             <NavLink
               key={t.to}
               to={t.to}

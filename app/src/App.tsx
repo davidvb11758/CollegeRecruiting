@@ -26,6 +26,7 @@ import SignUp from './pages/SignUp'
 // The staff screens are only downloaded by staff.
 const Roster = lazy(() => import('./pages/Roster'))
 const StaffAthlete = lazy(() => import('./pages/StaffAthlete'))
+const Assignments = lazy(() => import('./pages/Assignments'))
 
 // One quick retry smooths over a brief network drop; tests fail fast instead.
 const makeQueryClient = () => new QueryClient({ defaultOptions: { queries: { retry: import.meta.env.MODE === 'test' ? false : 1 } } })
@@ -71,6 +72,9 @@ export default function App() {
                   <Route path="/staff/find" element={<StaffFind />} />
                   <Route path="/staff/find/:programId" element={<StaffCollegeDetail />} />
                   <Route path="/staff/account" element={<Account />} />
+                  <Route element={<RequireRole roles={['admin']} />}>
+                    <Route path="/staff/assignments" element={<Assignments />} />
+                  </Route>
                 </Route>
               </Route>
 

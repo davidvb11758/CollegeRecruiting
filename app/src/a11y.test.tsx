@@ -165,6 +165,26 @@ describe('accessibility: staff screens', () => {
     await check(container, ready)
   })
 
+  it('the assignments screen, with a coordinator being removed', async () => {
+    const user = userEvent.setup()
+    const { container } = show('/staff/assignments', {
+      appUser: { role: 'admin', display_name: 'Admin Alex' },
+      athlete: null,
+      tables: {
+        ...tables,
+        app_user: [
+          { user_id: 'user-1', role: 'admin', display_name: 'Admin Alex', status: 'active' },
+          { user_id: 's1', role: 'staff', status: 'active' },
+        ],
+        athlete_staff_assignment: [{ id: 'as-1', athlete_id: ATH, staff_user_id: 's1', role_on_athlete: 'primary' }],
+      },
+    })
+    await check(container, 'Kim Smith')
+    await user.click(screen.getByRole('button', { name: 'Remove Kim Smith from Pat Player' }))
+    await screen.findByRole('button', { name: 'Yes, remove' })
+    expect(await axe(container, { rules: { 'color-contrast': { enabled: false } } })).toHaveNoViolations()
+  })
+
   it('the college edit forms', async () => {
     const user = userEvent.setup()
     const { container } = show('/staff/find/1', staff)
