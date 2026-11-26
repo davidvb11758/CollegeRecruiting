@@ -93,7 +93,7 @@ begin
   return next is(tests.q_count(us, 'select count(*) from public.athlete_note'), 1::bigint, 'the assigned coordinator reads it');
   return next is(tests.q_count(ut, 'select count(*) from public.athlete_note'), 0::bigint, 'a coordinator who is not assigned does not');
   return next is(tests.q_count(tests.gid('user_b'), 'select count(*) from public.athlete_note'), 0::bigint, 'another athlete does not');
-  return next is(tests.q_count(tests.gid('admin_x'), 'select count(*) from public.athlete_note'), 1::bigint, 'an administrator does');
+  return next is(tests.q_count(tests.gid('admin_x'), format('select count(*) from public.athlete_note where athlete_id = %L', v_a)), 1::bigint, 'an administrator does');
   return next is(tests.q_count(tests.gid('user_z'), 'select count(*) from public.athlete_note'), 0::bigint, 'a login with no athlete record does not');
 
   -- writing for someone else

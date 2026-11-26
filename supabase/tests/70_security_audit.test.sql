@@ -72,8 +72,8 @@ begin
           'athlete_target_division', 'athlete_video_link', 'college', 'college_coach', 'college_program', 'next_step'],
     'table-wide UPDATE is limited to the reviewed list');
   return next is((select array_agg(r.name order by r.name) from tests.public_rels('r,p,v') r where has_table_privilege('authenticated', r.oid, 'delete')),
-    array['athlete_guardian', 'athlete_major', 'athlete_target_division', 'athlete_video_link', 'college_coach'],
-    'DELETE is limited to an athlete''s small editable lists and private contacts');
+    array['athlete_guardian', 'athlete_major', 'athlete_staff_assignment', 'athlete_target_division', 'athlete_video_link', 'college_coach'],
+    'DELETE is limited to an athlete''s small editable lists, private contacts and (administrators only) assignments');
   return next is((select array_agg(r.name order by r.name) from tests.public_rels('r,p,v') r
                    where has_table_privilege('authenticated', r.oid, 'truncate,references,trigger')), null::text[],
     'nobody signed in can truncate, reference or add triggers');
@@ -97,10 +97,16 @@ begin
   return next ok(not has_column_privilege('authenticated', 'public.athlete', 'user_id', 'update'), 'an athlete cannot be handed to another login');
   return next ok(has_column_privilege('authenticated', 'public.athlete', 'user_id', 'insert'), 'but the first-login insert can set it (policy: only to yourself)');
   return next ok(not has_table_privilege('authenticated', 'public.athlete', 'delete'), 'an athlete record cannot be deleted through the app');
-  return next ok(not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'insert')
-                 and not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'update')
-                 and not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'delete'),
-    'assignments are changed only in the dashboard');
+  -- Administrators assign athletes from the app, but only who, whom and the role: never the author, the time or a changed target.
+  return next ok(has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'role_on_athlete', 'update')
+                 and not has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'athlete_id', 'update')
+                 and not has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'staff_user_id', 'update')
+                 and not has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'assigned_by', 'update'),
+    'an assignment''s role can be changed, but not whom it is for or who made it');
+  return next ok(has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'staff_user_id', 'insert')
+                 and not has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'assigned_by', 'insert')
+                 and not has_column_privilege('authenticated', 'public.athlete_staff_assignment', 'assigned_at', 'insert'),
+    'a new assignment cannot choose who made it or when');
   return next ok(not has_table_privilege('authenticated', 'public.change_history', 'insert')
                  and not has_table_privilege('authenticated', 'public.change_history', 'update')
                  and not has_table_privilege('authenticated', 'public.change_history', 'delete'), 'the change history cannot be written or erased through the app');

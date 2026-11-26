@@ -40,8 +40,7 @@ begin
   return next ok(not has_table_privilege('authenticated', 'public.app_user', 'INSERT'), 'app_user rows are created by the sign-up trigger only');
   return next ok(not has_column_privilege('authenticated', 'public.athlete', 'user_id', 'UPDATE'), 'an athlete cannot be re-pointed to another login');
   return next ok(not has_table_privilege('authenticated', 'public.staff_profile', 'INSERT'), 'staff profiles are created in the dashboard');
-  return next ok(not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'INSERT'), 'assignments are made in the dashboard');
-  return next ok(not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'DELETE'), 'assignments are removed in the dashboard');
+  return next ok(not has_table_privilege('authenticated', 'public.athlete_staff_assignment', 'INSERT'), 'assignments can be made only with the reviewed columns (and only by an administrator: 66_assignments)');
   return next ok(not has_table_privilege('authenticated', 'public.change_history', 'INSERT, UPDATE, DELETE'), 'change history is read-only for the app');
   return next ok(not has_table_privilege('authenticated', 'public.athlete', 'DELETE'), 'nobody deletes an athlete from the app');
   return next ok(not has_table_privilege('authenticated', 'public.athlete_college', 'DELETE'), 'list entries are archived, never deleted');
