@@ -156,6 +156,39 @@ begin
 end;
 $f$;
 
+-- The administrator's dashboard functions (schema `admin`, 67_admin_functions) are for the SQL editor only. The API's exposed
+-- schemas are set in config.toml and the dashboard (Settings > API), which a test cannot read; what a test can prove is that
+-- even if the schema were exposed, no API role could use anything in it.
+create function tests.test_the_admin_schema_is_closed_to_the_api() returns setof text language plpgsql as $f$
+begin
+  return next ok(exists (select 1 from pg_namespace where nspname = 'admin'), 'the admin schema exists');
+  return next ok(not has_schema_privilege('anon', 'admin', 'usage') and not has_schema_privilege('authenticated', 'admin', 'usage'),
+    'neither the signed-out nor the signed-in role can use the admin schema');
+  return next ok(not has_schema_privilege('anon', 'admin', 'create') and not has_schema_privilege('authenticated', 'admin', 'create'),
+    'or create anything in it');
+  return next is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                   where n.nspname = 'admin'
+                     and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))),
+    null::text[], 'no admin function can be run by an API role');
+  return next is((select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                   where n.nspname = 'admin' and c.relkind in ('r', 'p', 'v', 'm', 'f')
+                     and (has_table_privilege('anon', c.oid, 'select,insert,update,delete,truncate,references,trigger')
+                          or has_table_privilege('authenticated', c.oid, 'select,insert,update,delete,truncate,references,trigger'))),
+    null::text[], 'no admin table or view can be touched by an API role');
+  return next is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                   where n.nspname = 'admin' and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')),
+    null::text[], 'every admin function pins its search_path');
+  return next is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                   where n.nspname = 'admin' and p.prosecdef),
+    null::text[], 'and none of them is security definer: they run with the rights of whoever runs them, which is only the owner');
+  return next is((select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                   where n.nspname = 'admin' and c.relkind = 'v' and not coalesce('security_invoker=true' = any (c.reloptions), false)),
+    null::text[], 'the admin views run with the caller''s rights too');
+  return next ok((select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'admin') >= 7,
+    'the audit sees the admin functions (so the checks above are not empty)');
+end;
+$f$;
+
 select * from runtests('tests'::name);
 
 rollback;
