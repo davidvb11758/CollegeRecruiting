@@ -38,12 +38,13 @@
 
 ## Data and operations
 
-- [x] Admin scripts for promoting staff, assigning, disabling, exporting, deleting and reading history, with a script check. Re-run: `npm run admin:check`.
+- [x] Admin functions for creating a team, promoting staff, assigning, switching accounts off and deleting (in the `admin` schema, tested by `67_admin_functions.test.sql`; no app or API role can use them, `70_security_audit.test.sql`), and read-only scripts for export, history and pilot measures, with a script check. Re-run: `npm run db:test` and `npm run admin:check`.
+- [ ] In the Supabase dashboard (DEV now, PROD at launch): **Project Settings → Data API → Exposed schemas** does NOT list `admin`. A test cannot check this setting.
 - [x] `08_pilot_measures.sql` reads the pilot's success measures (and four safety checks) from the data, with no names; checked on made-up users. Re-run: `node scripts/admin-scripts-check.mjs 08`.
-- [ ] Coordinators promoted and assigned their athletes (scripts 01 and 03); each has signed in once and seen the roster.
+- [ ] Coordinators promoted (`admin.promote_to_staff`) and assigned their athletes (the administrator's **Assignments** screen, or `admin.assign_athletes`); each has signed in once and seen the roster. At least one administrator login exists (`admin.promote_to_staff` with `account_role => 'admin'`).
 - [ ] A 30-minute briefing with the coordinators using `guides/COORDINATOR-GUIDE.md`; each makes one real college correction in week one.
 - [ ] The family guide (`guides/FAMILY-GUIDE.md`) is sent with the link.
-- [ ] Decide what to do with the test accounts and test colleges' data (delete with script 06, or keep as demo accounts).
+- [ ] Decide what to do with the test accounts and test colleges' data (delete with `admin.delete_athlete`, or keep as demo accounts).
 
 ## Freeze (from launch day)
 

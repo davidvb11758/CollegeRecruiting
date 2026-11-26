@@ -9,7 +9,7 @@ For the club administrator. Plain steps for the jobs that come up. Nothing here 
 | The app | Cloudflare (Workers & Pages, project `devcollegerecruiting`), built from the `main` branch on GitHub |
 | The database and logins | Supabase project **RocketsDev** (`ewqocjaurrkamkhhwgll`) = DEV, where the pilot runs. PROD (`ivpewjtiwslpjlkfawlt`) stays empty until the pilot is judged a success |
 | Password-reset emails | Resend, connected in Supabase → Authentication → Emails → SMTP Settings (see `supabase/auth-settings.md`) |
-| Admin jobs | SQL scripts in `supabase/admin/` (read its README), run in the Supabase SQL Editor |
+| Admin jobs | Functions in the database's `admin` schema (one line each, in `supabase/admin/00_QUICK_CALLS.sql`) and three read-only scripts, run in the Supabase SQL Editor (read `supabase/admin/README.md`) |
 | Backups | `backups/` folder on the administrator's computer (git-ignored, never shared) |
 
 Secrets: the Resend key lives only in the Supabase dashboard. The Supabase service/secret key is never put in the app, in GitHub, in Cloudflare, or in chat. The only key in the app is the public (publishable) one.
@@ -20,14 +20,14 @@ Secrets: the Resend key lives only in the Supabase dashboard. The Supabase servi
 |---|---|
 | Add a family | Give them the site link and the sign-up code. Nothing else to do |
 | Change the sign-up code | SQL Editor: `insert into private.secret_setting (key, value) values ('signup_code', 'NEW-CODE') on conflict (key) do update set value = excluded.value;` (the code is not case sensitive). Tell new families the new code; existing accounts are not affected |
-| Make someone a coordinator | They sign up, then run `supabase/admin/01_promote_user_to_staff.sql` |
-| Give a coordinator athletes | `03_assign_athletes_to_coordinator.sql` (and the end of that file to remove one) |
-| Add a team | `02_create_team.sql` |
-| Switch an account off or on | `04_disable_or_enable_account.sql` |
+| Make someone a coordinator | They sign up (and stop at the "create profile" screen), then run `admin.promote_to_staff(…)`. It puts them on one team, replacing an earlier one. They sign out and in again |
+| Give a coordinator athletes | Sign in as an administrator and open **Assignments** (add, make main, remove; takes effect at once). For a batch, run `admin.assign_athletes(…)`; to take one away, `admin.unassign_athlete(…)` |
+| Add a team | `admin.create_team(…)` |
+| Switch an account off or on | `admin.set_account_status(…)` |
 | Give a family a copy of their data | `05_export_athlete.sql`, send only to the parent or guardian |
-| Delete a family's data | Export first (05), then `06_delete_athlete.sql` (preview, then confirm). It also removes their history |
+| Delete a family's data | Export first (05), then `admin.delete_athlete(…)`: the first run is only a preview; run it again with `confirm => true` and the email repeated. It also removes their history |
 | See who changed what | `07_list_change_history.sql`, or a coordinator's **History** tab inside the athlete |
-| Who is who | `00_who_is_who.sql` |
+| Who is who | `select * from admin.who_is_who;` |
 | A family forgot their password | They use *Forgot password*. If email is not working, they cannot reset it themselves: Supabase → Authentication → Users → the person → send a recovery link or set a new password, and tell them privately |
 
 ## Backups (decision P4: manual)
@@ -79,9 +79,9 @@ Free Supabase projects **pause after a week with no activity**. During the pilot
 
 | Situation | Do this |
 |---|---|
-| Someone may have seen another family's data | Switch the accounts involved off (04), note times and what was seen, run `07_list_change_history.sql`, check Supabase logs for the period, and ask for help. The database tests (`npm run db:test`) prove the access rules; a leak would mean a bug to fix |
+| Someone may have seen another family's data | Switch the accounts involved off (`admin.set_account_status`), note times and what was seen, run `07_list_change_history.sql`, check Supabase logs for the period, and ask for help. The database tests (`npm run db:test`) prove the access rules; a leak would mean a bug to fix |
 | A password or key was exposed (chat, email, screenshot) | Rotate it now: Resend key (Resend dashboard, then Supabase SMTP settings); Supabase keys (Project Settings → API Keys, create a new publishable key and update Cloudflare); database password (Project Settings → Database). Never paste the new value anywhere but the dashboard that needs it |
-| A coordinator or family member left the club | Switch the account off (04). Delete it later with 06 if asked |
+| A coordinator or family member left the club | Switch the account off (`admin.set_account_status`). Delete it later with `admin.delete_athlete` if asked |
 | The site shows "Something went wrong" | Reload; check Cloudflare Deployments for a bad build and roll back; check Supabase status |
 | Sign-up fails for a family | Check the code (not case sensitive) and that the acknowledgement box is ticked. Re-enter the code with `insert ... on conflict` above if it was never set |
 

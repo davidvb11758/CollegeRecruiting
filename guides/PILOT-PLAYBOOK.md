@@ -32,15 +32,15 @@ The same story is proved by the database every time you run `npm run db:test` (f
 
 **Dry run is clean when:** every task is finished on both phone types with no blocker open, the stopwatch task is at or near 10 minutes, the password reset email arrived, and the coordinator finished tasks 6 and 7.
 
-**Afterwards:** decide what to do with the test accounts. Either delete them (`06_delete_athlete.sql`, export first if the family wants a copy) or keep them as demo accounts and list their emails in `leave_out` at the top of `supabase/admin/08_pilot_measures.sql` so they do not count in the measures.
+**Afterwards:** decide what to do with the test accounts. Either delete them (`admin.delete_athlete`, export first if the family wants a copy) or keep them as demo accounts and list their emails in `leave_out` at the top of `supabase/admin/08_pilot_measures.sql` so they do not count in the measures.
 
 ## Before you share the link
 
 Work through `LAUNCH-CHECKLIST.md` until every box is ticked and dated, then:
 
 - Take a fresh backup (`npm run backup:data`) and run `npm run backup:check -- backups/<folder>` until it says PASSED. Copy the backup to encrypted storage.
-- Run `npm run db:test` and `npm run admin:check` (edit your private copies of scripts 01 and 03 back to placeholders first, or run `node scripts/admin-scripts-check.mjs 08` for the measures only). Both should be clean.
-- Promote and assign the coordinators (scripts 01 and 03). Each coordinator signs in once and sees the roster.
+- Run `npm run db:test` and `npm run admin:check` (or `node scripts/admin-scripts-check.mjs 08` for the measures only). Both should be clean.
+- Promote the coordinators (`admin.promote_to_staff`) and assign their athletes on the administrator's **Assignments** screen (or `admin.assign_athletes`). Each coordinator signs in once and sees the roster.
 - Write the launch date into the checklist. From that day: no resets of DEV and no edits to applied migrations (the freeze in `RUNBOOK.md`).
 
 ## Launch
